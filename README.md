@@ -21,3 +21,5 @@ To import Tiling, just add the ND-Tile directory to your PYTHONPATH environment 
 * Add examples
 
 * Add unit testing
+
+* Improve detection, mitigation, and reporting of untiled, empty regions in domain.
