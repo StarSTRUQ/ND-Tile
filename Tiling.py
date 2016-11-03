@@ -478,8 +478,8 @@ class Domain(object):
         else:
             this_plot_num = save_num
         print('SAVING PLOT NUMBER {}'.format(this_plot_num))
-        plt.savefig('tiled_domain_{}.eps'.format(this_plot_num))
-        plt.savefig('tiled_domain_{}.png'.format(this_plot_num))
+        plt.savefig('tiled_domain_{0:04d}.eps'.format(this_plot_num))
+        plt.savefig('tiled_domain_{0:04d}.png'.format(this_plot_num))
         plt.close()
 
     def print_domain_report(self):
