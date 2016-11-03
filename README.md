@@ -13,3 +13,11 @@ To import Tiling, just add the ND-Tile directory to your PYTHONPATH environment 
 * numpy
 
 * scipy
+
+## TODO
+
+* Allow Python 2
+
+* Add examples
+
+* Add unit testing
