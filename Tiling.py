@@ -43,6 +43,17 @@ class BCTypes(object):
     down  = -1
     tile  = +2
     point = +3
+    all_types = +4
+
+class BCDim(object):
+    # Boundary data structure along a dimension
+    def __init__(self):
+        self.lo_bc = BCTypes.none
+        self.lo_bc_type = BCTypes.none
+        self.lo_bc_object = BCTypes.none
+        self.hi_bc = BCTypes.none
+        self.hi_bc_type = BCTypes.none
+        self.hi_bc_object = BCTypes.none
 
 class TETypes(object):
     """Tiling Error Types"""
@@ -562,6 +573,32 @@ class Domain(object):
                 otiles.append(ktile)
         return otiles
 
+    def get_tile_constraints(self, atile, di, bcdi):
+        """
+        Get tile based [lo, hi] constraints along dimension di for tile atile.
+
+        Return boundary conditions along dimension di in bcdi.
+
+        Calculates tile occlusions from self.tiles.
+        """
+        otiles = self.get_tile_occlusions(atile, di)
+        # Get tile constraint on di for [lo, hi]
+        for btile in otiles:
+            # Check if btile can constrain lo along di
+            if btile.hi[di] <= atile.lo[di]:
+                if bcdi.lo_bc == BCTypes.none or btile.hi[di] > bcdi.lo_bc:
+                    bcdi.lo_bc = btile.hi[di]
+                    bcdi.lo_bc_type = BCTypes.tile
+                    bcdi.lo_bc_object = btile
+
+            # Check if btile can constrain hi along di
+            if btile.lo[di] >= atile.hi[di]:
+                if bcdi.hi_bc == BCTypes.none or btile.lo[di] < bcdi.hi_bc:
+                    bcdi.hi_bc = btile.lo[di]
+                    bcdi.hi_bc_type = BCTypes.tile
+                    bcdi.hi_bc_object = btile
+        return bcdi
+
     def get_point_occlusions(self, atile, di):
         """
         Given a tile object (atile), find the points in self.scratch_points
@@ -591,6 +628,61 @@ class Domain(object):
             if kandidate:
                 opoints.append(p)
         return opoints
+
+    def get_point_constraints(self, atile, di, bcdi):
+        """
+        Get point based [lo, hi] constraints along dimension di for tile atile.
+
+        Return boundary conditions along dimension di in bcdi.
+
+        Calculates point occlusions from self.scratch_points.
+        """
+        opoints = self.get_point_occlusions(atile, di)
+        # Get point constraint on di for [lo, hi]
+        for p in opoints:
+            # Check if p can constrain lo along di
+            if p.r[di] <= atile.lo[di]:
+                phalf = 0.5*(p.r[di] + atile.lo[di])
+                if bcdi.lo_bc == BCTypes.none or phalf > bcdi.lo_bc:
+                    bcdi.lo_bc = phalf
+                    bcdi.lo_bc_type = BCTypes.point
+                    bcdi.lo_bc_object = p
+
+            # Check if p can constrain hi along di
+            if p.r[di] >= atile.hi[di]:
+                phalf = 0.5*(p.r[di] + atile.hi[di])
+                if bcdi.hi_bc == BCTypes.none or phalf < bcdi.hi_bc:
+                    bcdi.hi_bc = phalf
+                    bcdi.hi_bc_type = BCTypes.point
+                    bcdi.hi_bc_object = p
+        return bcdi
+
+    def get_tile_boundaries(self, atile, di, allow_bc_types=[BCTypes.all_types]):
+        """
+        Given atile and a dimension di, return the [lo, hi] boundaries in a BCDim object.
+
+        Account for the types of boundary conditions listed in allow_bc_types.
+        """
+        bcdi = BCDim()
+
+        if (BCTypes.tile in allow_bc_types or
+            BCTypes.all_types in allow_bc_types):
+            # Get tile constraints
+            bcdi = self.get_tile_constraints(atile, di, bcdi)
+
+        if (BCTypes.point in allow_bc_types or
+            BCTypes.all_types in allow_bc_types):
+            # Get point constraints
+            bcdi = self.get_point_constraints(atile, di, bcdi)
+
+        # If neither point nor tile constraint, use domain [lo, hi]
+        if bcdi.lo_bc == BCTypes.none:
+            bcdi.lo_bc = self.lo[di]
+        if bcdi.hi_bc == BCTypes.none:
+            bcdi.hi_bc = self.hi[di]
+
+        # Return BCDim object
+        return bcdi
         
     def set_tile_boundaries(self, atile):
         """
@@ -601,71 +693,23 @@ class Domain(object):
         """
         # Expand Tile in each dimension as possible
         for di in range(self.dm):
-            # Get occluding tile and point objects for constraints
-            otiles = self.get_tile_occlusions(atile, di)
-            opoints = self.get_point_occlusions(atile, di)
+            # Get tile boundaries in dimension di from points and tiles
+            bcdi = self.get_tile_boundaries(atile, di,
+                                            allow_bc_types=[BCTypes.all_types])
             
-            # Setup bc data structures for figuring out boundaries
-            lo_bc = BCTypes.none
-            lo_bc_type = BCTypes.none
-            lo_bc_object = BCTypes.none
-            hi_bc = BCTypes.none
-            hi_bc_type = BCTypes.none
-            hi_bc_object = BCTypes.none
-
-            # Get tile constraint on di for [lo, hi]
-            for btile in otiles:
-                # Check if btile can constrain lo along di
-                if btile.hi[di] <= atile.lo[di]:
-                    if lo_bc == BCTypes.none or btile.hi[di] > lo_bc:
-                        lo_bc = btile.hi[di]
-                        lo_bc_type = BCTypes.tile
-                        lo_bc_object = btile
-
-                # Check if btile can constrain hi along di
-                if btile.lo[di] >= atile.hi[di]:
-                    if hi_bc == BCTypes.none or btile.lo[di] < hi_bc:
-                        hi_bc = btile.lo[di]
-                        hi_bc_type = BCTypes.tile
-                        hi_bc_object = btile
-
-            # Get point constraint on di for [lo, hi]
-            for p in opoints:
-                # Check if p can constrain lo along di
-                if p.r[di] <= atile.lo[di]:
-                    phalf = 0.5*(p.r[di] + atile.lo[di])
-                    if lo_bc == BCTypes.none or phalf > lo_bc:
-                        lo_bc = phalf
-                        lo_bc_type = BCTypes.point
-                        lo_bc_object = p
-
-                # Check if p can constrain hi along di
-                if p.r[di] >= atile.hi[di]:
-                    phalf = 0.5*(p.r[di] + atile.hi[di])
-                    if hi_bc == BCTypes.none or phalf < hi_bc:
-                        hi_bc = phalf
-                        hi_bc_type = BCTypes.point
-                        hi_bc_object = p
-            
-            # If neither point nor tile constraint, use domain [lo, hi]
-            if lo_bc == BCTypes.none:
-                lo_bc = self.lo[di]
-            if hi_bc == BCTypes.none:
-                hi_bc = self.hi[di]
-
             # Now implement [lo_bc, hi_bc] for this tile and dimension di
-            atile.lo[di] = lo_bc
-            atile.hi[di] = hi_bc
+            atile.lo[di] = bcdi.lo_bc
+            atile.hi[di] = bcdi.hi_bc
 
             # If point constraint, make that point a boundary along di
-            if lo_bc_type == BCTypes.point:
+            if bcdi.lo_bc_type == BCTypes.point:
                 # Set point bc masks wrt points remaining in domain
-                lo_bc_object.bedge[di] = lo_bc
-                lo_bc_object.btype[di] = BCTypes.up
-            if hi_bc_type == BCTypes.point:
+                bcdi.lo_bc_object.bedge[di] = bcdi.lo_bc
+                bcdi.lo_bc_object.btype[di] = BCTypes.up
+            if bcdi.hi_bc_type == BCTypes.point:
                 # Set point bc masks wrt points remaining in domain
-                hi_bc_object.bedge[di] = hi_bc
-                hi_bc_object.btype[di] = BCTypes.down
+                bcdi.hi_bc_object.bedge[di] = bcdi.hi_bc
+                bcdi.hi_bc_object.btype[di] = BCTypes.down
 
             # Explain Yourself!
             # print('Setting Tile Boundaries along dimension {} for Reasons:'.format(di))
