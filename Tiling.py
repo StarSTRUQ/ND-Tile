@@ -695,19 +695,24 @@ class Domain(object):
         # Return BCDim object
         return bcdi
         
-    def set_tile_boundaries(self, atile):
+    def set_tile_boundaries(self, atile, allow_bc_types=[BCTypes.all_types]):
         """
         Given atile, sets its [lo, hi] boundaries in each dimension.
 
         Also updates the boundary masks for adjacent points
         in the tiling list scratch_points.
         """
+        revised_tile = False
         # Expand Tile in each dimension as possible
         for di in range(self.dm):
             # Get tile boundaries in dimension di from points and tiles
             bcdi = self.get_tile_boundaries(atile, di,
-                                            allow_bc_types=[BCTypes.all_types])
-            
+                                            allow_bc_types=allow_bc_types)
+
+            if not (atile.lo[di] == bcdi.lo_bc and
+                    atile.hi[di] == bcdi.hi_bc):
+                revised_tile = True
+                
             # Now implement [lo_bc, hi_bc] for this tile and dimension di
             atile.lo[di] = bcdi.lo_bc
             atile.hi[di] = bcdi.hi_bc
@@ -728,6 +733,7 @@ class Domain(object):
             # print('hi reason: {}'.format(hi_bc_type))
             atile.print_tile_report()
             # Go to next dimension
+        return revised_tile # True if in some dimension we changed the tile bounds
 
     def tiling_decision_function(self, gnr_thresh=None, tilde_resd_thresh=None,
                                  tilde_resd_factor=None):
@@ -821,7 +827,7 @@ class Domain(object):
                         
         # set boundaries of atile and update point boundary masks
         # print('Updating point boundary masks')
-        self.set_tile_boundaries(atile)
+        did_update = self.set_tile_boundaries(atile)
 
         # Add atile to tiles in this domain
         # print('Adding tile to domain')
@@ -870,10 +876,23 @@ class Domain(object):
                 # print('Updating point boundary masks and replacing atile=>stile')
                 self.scratch_points = min_out_spts[:]
                 self.tiles.pop(min_gnr_atile_i)
-                self.set_tile_boundaries(min_gnr_stile)
+                did_update = self.set_tile_boundaries(min_gnr_stile)
                 self.tiles.append(min_gnr_stile)
                 break
         return canex_tiles
+
+    def bound_existing_tiles(self):
+        """
+        Given the tiles in self.tiles, update all their tile-based boundaries
+        until no further updates can be made.
+        """
+        revised_tiles = True
+        while revised_tiles:
+            revised_tiles = False
+            for atile in self.tiles:
+                revised_atile = self.set_tile_boundaries(atile,
+                                                         allow_bc_types=[BCTypes.tile])
+                revised_tiles = revised_tiles or revised_atile
 
     def do_domain_tiling(self, gnr_thresh=None, tilde_resd_thresh=None,
                          tilde_resd_factor=None):
@@ -909,6 +928,9 @@ class Domain(object):
             else:
                 raise
 
+        # Update the boundaries of existing tiles to help eliminate empty untiled space
+        self.bound_existing_tiles()
+                
         # Output Results
         self.plot_domain_slice()
         self.print_domain_report()
