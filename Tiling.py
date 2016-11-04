@@ -618,14 +618,14 @@ class Domain(object):
                 # Check if btile can constrain lo along di
                 if btile.hi[di] <= atile.lo[di]:
                     if lo_bc == BCTypes.none or btile.hi[di] > lo_bc:
-                        lo_bc = btile.hi[di] + np.finfo(float).eps
+                        lo_bc = btile.hi[di]
                         lo_bc_type = BCTypes.tile
                         lo_bc_object = btile
 
                 # Check if btile can constrain hi along di
                 if btile.lo[di] >= atile.hi[di]:
                     if hi_bc == BCTypes.none or btile.lo[di] < hi_bc:
-                        hi_bc = btile.lo[di] - np.finfo(float).eps
+                        hi_bc = btile.lo[di]
                         hi_bc_type = BCTypes.tile
                         hi_bc_object = btile
 
