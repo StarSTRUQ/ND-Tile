@@ -530,6 +530,68 @@ class Domain(object):
             # print('bedge: {}'.format(p.bedge[di]))
             # print('btype: {}'.format(p.btype[di]))
 
+    def get_tile_occlusions(self, atile, di):
+        """
+        Given a tile object (atile), find the (other) tiles in self.tiles
+        which will occlude atile along dimension di and thus can set bounds.
+
+        Return a list of such tiles.
+        """
+        # Find the tiles which atile does not overlap in dimension di
+        # but does overlap in every other dimension.
+        # These tiles set the bounds on extensions along dimension di.
+        # (If there is an additional dimension along which the tiles
+        # do not overlap, then no constraint can be made along di.)
+        otiles = []
+        for ktile in self.tiles:
+            if atile == ktile or atile.overlaps_tile_dimension(ktile, di):
+                # atile is ktile so there's no constraint or
+                # ktile overlaps atile along di,
+                # so can't constrain atile along di
+                continue
+            kandidate = True
+            for dj in range(self.dm):
+                if dj==di:
+                    continue
+                if not atile.overlaps_tile_dimension(ktile, dj):
+                    # ktile doesn't overlap along dj, dj =/= di
+                    # so can't constrain di
+                    kandidate = False
+                    break
+            if kandidate:
+                otiles.append(ktile)
+        return otiles
+
+    def get_point_occlusions(self, atile, di):
+        """
+        Given a tile object (atile), find the points in self.scratch_points
+        which will occlude atile along dimension di and thus can set bounds.
+
+        Return a list of such points.
+        """
+        # Find the points which atile does not overlap in dimension di
+        # but does overlap in every other dimension.
+        # These points set the bounds on extensions along dimension di.
+        # (If there is an additional dimension along which tile and points
+        # do not overlap, then no constraint can be made along di.)
+        opoints = []
+        for p in self.scratch_points:
+            if atile.overlaps_point_dimension(p, di):
+                # p overlaps along di, so can't constrain di
+                continue
+            kandidate = True
+            for dj in range(self.dm):
+                if dj==di:
+                    continue
+                if not atile.overlaps_point_dimension(p, dj):
+                    # p doesn't overlap along dj, dj =/= di
+                    # so can't constrain di
+                    kandidate = False
+                    break
+            if kandidate:
+                opoints.append(p)
+        return opoints
+        
     def set_tile_boundaries(self, atile):
         """
         Given atile, sets its [lo, hi] boundaries in each dimension.
@@ -539,49 +601,9 @@ class Domain(object):
         """
         # Expand Tile in each dimension as possible
         for di in range(self.dm):
-            # Find the tiles which atile does not overlap in dimension di
-            # but does overlap in every other dimension.
-            # These tiles set the bounds on extensions along dimension di.
-            # (If there is an additional dimension along which the tiles
-            # do not overlap, then no constraint can be made along di.)
-            otiles = []
-            for ktile in self.tiles:
-                if atile.overlaps_tile_dimension(ktile, di):
-                    # ktile overlaps along di, so can't constrain di
-                    continue
-                kandidate = True
-                for dj in range(self.dm):
-                    if dj==di:
-                        continue
-                    if not atile.overlaps_tile_dimension(ktile, dj):
-                        # ktile doesn't overlap along dj, dj =/= di
-                        # so can't constrain di
-                        kandidate = False
-                        break
-                if kandidate:
-                    otiles.append(ktile)
-
-            # Find the points which atile does not overlap in dimension di
-            # but does overlap in every other dimension.
-            # These points set the bounds on extensions along dimension di.
-            # (If there is an additional dimension along which tile and points
-            # do not overlap, then no constraint can be made along di.)
-            opoints = []
-            for p in self.scratch_points:
-                if atile.overlaps_point_dimension(p, di):
-                    # p overlaps along di, so can't constrain di
-                    continue
-                kandidate = True
-                for dj in range(self.dm):
-                    if dj==di:
-                        continue
-                    if not atile.overlaps_point_dimension(p, dj):
-                        # p doesn't overlap along dj, dj =/= di
-                        # so can't constrain di
-                        kandidate = False
-                        break
-                if kandidate:
-                    opoints.append(p)
+            # Get occluding tile and point objects for constraints
+            otiles = self.get_tile_occlusions(atile, di)
+            opoints = self.get_point_occlusions(atile, di)
             
             # Setup bc data structures for figuring out boundaries
             lo_bc = BCTypes.none
