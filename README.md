@@ -23,3 +23,7 @@ To import Tiling, just add the ND-Tile directory to your PYTHONPATH environment 
 * Add unit testing
 
 * Improve detection, mitigation, and reporting of untiled, empty regions in domain.
+
+- post-tiling tile-only bc update
+
+- recursive dimensionality reduction for tile surfaces to add virtual tiles
