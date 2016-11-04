@@ -22,6 +22,8 @@ To import Tiling, just add the ND-Tile directory to your PYTHONPATH environment 
 
 * Add unit testing
 
+* Domain slicing should plot all possible 2-D slices by default.
+
 * Improve detection, mitigation, and reporting of untiled, empty regions in domain.
 
 - post-tiling tile-only bc update
