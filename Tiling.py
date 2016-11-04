@@ -29,6 +29,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+import itertools
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -177,6 +178,16 @@ class Tile(object):
             self.dm = points[0].dm
         if not list(self.lo) or not list(self.hi):
             self.boundary_minimize()
+
+    def get_gen_vertices(self):
+        """
+        Return a generator for the vertices of this Tile.
+        """
+        if not list(self.lo) or not list(self.hi):
+            return None
+        # Re-arrange [lo, hi] by dimension
+        dimbcs = [[self.lo[i], self.hi[i]] for i in range(self.dm)]
+        return itertools.product(*dimbcs)
 
     def print_tile_report(self, tile_number=None):
         """Prints report of this Tile"""
