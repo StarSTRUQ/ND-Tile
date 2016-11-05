@@ -424,7 +424,46 @@ class Tile(object):
             if kandidate:
                 otiles.append(ktile)
         return otiles
-    
+
+    def whether_osculates_tile(self, atile, di):
+        """
+        Determine whether self and atile osculate on any surface in dimension di.
+
+        Find the surface of self which is osculated (sface)
+
+        Also find the ctile which is the intersection of the osculating surfaces
+        of self and atile.
+
+        Return (sface, ctile) in case atile osculates self.
+
+        Otherwise return (None, None)
+        """
+        negative = (None, None)
+        
+        # First determine whether atile overlaps self along di
+        if not self.overlaps_tiles([atile]):
+            return negative
+        
+        # Now determine if atile and self osculate
+        for sface in self.gen_surfaces():
+            for aface in atile.gen_surfaces():
+                if sface[di] == aface[di]:
+                    # sface and aface osculate
+                    # now find the intersection tile between sface and aface
+                    ctile = sface.get_tile_intersection(aface)
+                    return (sface, ctile)
+                
+        # Found nothing so atile and self don't osculate
+        return negative
+                    
+    def get_tile_intersection(self, atile):
+        """
+        Return the tile which is the intersection of self and atile.
+        """
+        lo = np.maximum(self.lo, atile.lo)
+        hi = np.minimum(self.hi, atile.hi)
+        return Tile(lo=lo, hi=hi)
+
     def get_tile_constraints(self, tiles, di, bcdi=None):
         """
         Get tile based [lo, hi] constraints along dimension di for this Tile.
