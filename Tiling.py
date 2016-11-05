@@ -174,20 +174,63 @@ class Tile(object):
         self.lo = lo
         self.hi = hi
         self.dm = dm
+        if not dm and lo:
+            self.dm = len(lo)
         if all(points) and not dm:
             self.dm = points[0].dm
-        if not list(self.lo) or not list(self.hi):
+        if points and (not list(self.lo) or not list(self.hi)):
             self.boundary_minimize()
 
-    def get_gen_vertices(self):
+    def gen_vertices(self):
         """
         Return a generator for the vertices of this Tile.
         """
         if not list(self.lo) or not list(self.hi):
-            return None
+            return [None]
         # Re-arrange [lo, hi] by dimension
         dimbcs = [[self.lo[i], self.hi[i]] for i in range(self.dm)]
         return itertools.product(*dimbcs)
+
+    def gen_surfaces(self):
+        """
+        Generate the surfaces for this Tile as Tile objects.
+
+        The distinguishing feature of the surface relative to this Tile
+        is that, although the surface and Tile are of the same
+        dimensionality, there is at least one dimension di
+        in which the surface tile has lo[di] == hi[di] == constant.
+        """
+        for di in range(self.dm):
+            lo = self.lo[:]
+            hi = self.hi[:]
+            for bvec in [self.lo, self.hi]:
+                lo[di] = bvec[di]
+                hi[di] = bvec[di]
+                yield Tile(lo=lo, hi=hi)
+
+    def get_constant_dimensions(self):
+        """
+        Find all dimensions di for which lo[di] == hi[di] == constant
+
+        Return a list of tuples [(di, constant), ...] satisfying that condition.
+        """
+        constant_dimensions = []
+        for di in range(self.dm):
+            if self.lo[di] == self.hi[di]:
+                constant_dimensions.append((di, self.lo[di]))
+        return constant_dimensions
+
+    def get_nonconstant_dimensions(self):
+        """
+        Find all dimensions di for which lo[di] != hi[di]
+
+        Return a list of such dimensions di.
+        """
+        non_constant_dimensions = []
+        for di in range(self.dm):
+            if self.lo[di] != self.hi[di]:
+                non_constant_dimensions.append(di)
+        return non_constant_dimensions
 
     def print_tile_report(self, tile_number=None):
         """Prints report of this Tile"""
