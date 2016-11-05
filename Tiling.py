@@ -251,6 +251,66 @@ class Tile(object):
             refp_olap = False
         return refp_olap
 
+    def get_point_occlusions(self, points, di):
+        """
+        Given a list of points (points), find the points 
+        which will occlude self along dimension di and thus can set bounds.
+
+        Return a list of such points.
+        """
+        # Find the points which self does not overlap in dimension di
+        # but does overlap in every other dimension.
+        # These points set the bounds on extensions along dimension di.
+        # (If there is an additional dimension along which tile and points
+        # do not overlap, then no constraint can be made along di.)
+        opoints = []
+        for p in points:
+            if self.overlaps_point_dimension(p, di):
+                # p overlaps along di, so can't constrain di
+                continue
+            kandidate = True
+            for dj in range(self.dm):
+                if dj==di:
+                    continue
+                if not self.overlaps_point_dimension(p, dj):
+                    # p doesn't overlap along dj, dj =/= di
+                    # so can't constrain di
+                    kandidate = False
+                    break
+            if kandidate:
+                opoints.append(p)
+        return opoints
+
+    def get_point_constraints(self, points, di, bcdi=None):
+        """
+        Get point based [lo, hi] constraints along dimension di for this Tile.
+
+        Return boundary conditions along dimension di in bcdi.
+
+        Calculates point occlusions from the list of points (points)
+        """
+        if not bcdi:
+            bcdi = BCDim()
+        opoints = self.get_point_occlusions(points, di)
+        # Get point constraint on di for [lo, hi]
+        for p in opoints:
+            # Check if p can constrain lo along di
+            if p.r[di] <= self.lo[di]:
+                phalf = 0.5*(p.r[di] + self.lo[di])
+                if bcdi.lo_bc == BCTypes.none or phalf > bcdi.lo_bc:
+                    bcdi.lo_bc = phalf
+                    bcdi.lo_bc_type = BCTypes.point
+                    bcdi.lo_bc_object = p
+
+            # Check if p can constrain hi along di
+            if p.r[di] >= self.hi[di]:
+                phalf = 0.5*(p.r[di] + self.hi[di])
+                if bcdi.hi_bc == BCTypes.none or phalf < bcdi.hi_bc:
+                    bcdi.hi_bc = phalf
+                    bcdi.hi_bc_type = BCTypes.point
+                    bcdi.hi_bc_object = p
+        return bcdi
+    
     def overlaps_tile_dimension(self, reftile, di):
         """
         Checks to see if self overlaps reftile in the dimension di:
@@ -288,6 +348,67 @@ class Tile(object):
             if reft_olap:
                 olap.append(reft)
         return olap
+
+    def get_tile_occlusions(self, tiles, di):
+        """
+        Given a list of tile objects (tiles), find the tiles in tiles
+        which are not self which will occlude self along dimension di 
+        and thus can set bounds.
+
+        Return a list of such tiles.
+        """
+        # Find the tiles which self does not overlap in dimension di
+        # but does overlap in every other dimension.
+        # These tiles set the bounds on extensions along dimension di.
+        # (If there is an additional dimension along which the tiles
+        # do not overlap, then no constraint can be made along di.)
+        otiles = []
+        for ktile in tiles:
+            if self == ktile or self.overlaps_tile_dimension(ktile, di):
+                # self is ktile so there's no constraint or
+                # ktile overlaps self along di,
+                # so can't constrain self along di
+                continue
+            kandidate = True
+            for dj in range(self.dm):
+                if dj==di:
+                    continue
+                if not self.overlaps_tile_dimension(ktile, dj):
+                    # ktile doesn't overlap along dj, dj =/= di
+                    # so can't constrain di
+                    kandidate = False
+                    break
+            if kandidate:
+                otiles.append(ktile)
+        return otiles
+    
+    def get_tile_constraints(self, tiles, di, bcdi=None):
+        """
+        Get tile based [lo, hi] constraints along dimension di for this Tile.
+
+        Return boundary conditions along dimension di in bcdi.
+
+        Calculates tile occlusions from the list tiles.
+        """
+        if not bcdi:
+            bcdi = BCDim()
+        otiles = self.get_tile_occlusions(tiles, di)
+        # Get tile constraint on di for [lo, hi]
+        for btile in otiles:
+            # Check if btile can constrain lo along di
+            if btile.hi[di] <= self.lo[di]:
+                if bcdi.lo_bc == BCTypes.none or btile.hi[di] > bcdi.lo_bc:
+                    bcdi.lo_bc = btile.hi[di]
+                    bcdi.lo_bc_type = BCTypes.tile
+                    bcdi.lo_bc_object = btile
+
+            # Check if btile can constrain hi along di
+            if btile.lo[di] >= self.hi[di]:
+                if bcdi.hi_bc == BCTypes.none or btile.lo[di] < bcdi.hi_bc:
+                    bcdi.hi_bc = btile.lo[di]
+                    bcdi.hi_bc_type = BCTypes.tile
+                    bcdi.hi_bc_object = btile
+        return bcdi
 
     def get_hypothetical_extend(self, points=[], avoid_tiles=None, greedy_absorb_points=[]):
         # Returns a hypothetical tile with points consisting of self.points + points
@@ -552,122 +673,6 @@ class Domain(object):
             # print('bedge: {}'.format(p.bedge[di]))
             # print('btype: {}'.format(p.btype[di]))
 
-    def get_tile_occlusions(self, atile, di):
-        """
-        Given a tile object (atile), find the (other) tiles in self.tiles
-        which will occlude atile along dimension di and thus can set bounds.
-
-        Return a list of such tiles.
-        """
-        # Find the tiles which atile does not overlap in dimension di
-        # but does overlap in every other dimension.
-        # These tiles set the bounds on extensions along dimension di.
-        # (If there is an additional dimension along which the tiles
-        # do not overlap, then no constraint can be made along di.)
-        otiles = []
-        for ktile in self.tiles:
-            if atile == ktile or atile.overlaps_tile_dimension(ktile, di):
-                # atile is ktile so there's no constraint or
-                # ktile overlaps atile along di,
-                # so can't constrain atile along di
-                continue
-            kandidate = True
-            for dj in range(self.dm):
-                if dj==di:
-                    continue
-                if not atile.overlaps_tile_dimension(ktile, dj):
-                    # ktile doesn't overlap along dj, dj =/= di
-                    # so can't constrain di
-                    kandidate = False
-                    break
-            if kandidate:
-                otiles.append(ktile)
-        return otiles
-
-    def get_tile_constraints(self, atile, di, bcdi):
-        """
-        Get tile based [lo, hi] constraints along dimension di for tile atile.
-
-        Return boundary conditions along dimension di in bcdi.
-
-        Calculates tile occlusions from self.tiles.
-        """
-        otiles = self.get_tile_occlusions(atile, di)
-        # Get tile constraint on di for [lo, hi]
-        for btile in otiles:
-            # Check if btile can constrain lo along di
-            if btile.hi[di] <= atile.lo[di]:
-                if bcdi.lo_bc == BCTypes.none or btile.hi[di] > bcdi.lo_bc:
-                    bcdi.lo_bc = btile.hi[di]
-                    bcdi.lo_bc_type = BCTypes.tile
-                    bcdi.lo_bc_object = btile
-
-            # Check if btile can constrain hi along di
-            if btile.lo[di] >= atile.hi[di]:
-                if bcdi.hi_bc == BCTypes.none or btile.lo[di] < bcdi.hi_bc:
-                    bcdi.hi_bc = btile.lo[di]
-                    bcdi.hi_bc_type = BCTypes.tile
-                    bcdi.hi_bc_object = btile
-        return bcdi
-
-    def get_point_occlusions(self, atile, di):
-        """
-        Given a tile object (atile), find the points in self.scratch_points
-        which will occlude atile along dimension di and thus can set bounds.
-
-        Return a list of such points.
-        """
-        # Find the points which atile does not overlap in dimension di
-        # but does overlap in every other dimension.
-        # These points set the bounds on extensions along dimension di.
-        # (If there is an additional dimension along which tile and points
-        # do not overlap, then no constraint can be made along di.)
-        opoints = []
-        for p in self.scratch_points:
-            if atile.overlaps_point_dimension(p, di):
-                # p overlaps along di, so can't constrain di
-                continue
-            kandidate = True
-            for dj in range(self.dm):
-                if dj==di:
-                    continue
-                if not atile.overlaps_point_dimension(p, dj):
-                    # p doesn't overlap along dj, dj =/= di
-                    # so can't constrain di
-                    kandidate = False
-                    break
-            if kandidate:
-                opoints.append(p)
-        return opoints
-
-    def get_point_constraints(self, atile, di, bcdi):
-        """
-        Get point based [lo, hi] constraints along dimension di for tile atile.
-
-        Return boundary conditions along dimension di in bcdi.
-
-        Calculates point occlusions from self.scratch_points.
-        """
-        opoints = self.get_point_occlusions(atile, di)
-        # Get point constraint on di for [lo, hi]
-        for p in opoints:
-            # Check if p can constrain lo along di
-            if p.r[di] <= atile.lo[di]:
-                phalf = 0.5*(p.r[di] + atile.lo[di])
-                if bcdi.lo_bc == BCTypes.none or phalf > bcdi.lo_bc:
-                    bcdi.lo_bc = phalf
-                    bcdi.lo_bc_type = BCTypes.point
-                    bcdi.lo_bc_object = p
-
-            # Check if p can constrain hi along di
-            if p.r[di] >= atile.hi[di]:
-                phalf = 0.5*(p.r[di] + atile.hi[di])
-                if bcdi.hi_bc == BCTypes.none or phalf < bcdi.hi_bc:
-                    bcdi.hi_bc = phalf
-                    bcdi.hi_bc_type = BCTypes.point
-                    bcdi.hi_bc_object = p
-        return bcdi
-
     def get_tile_boundaries(self, atile, di, allow_bc_types=[BCTypes.all_types]):
         """
         Given atile and a dimension di, return the [lo, hi] boundaries in a BCDim object.
@@ -679,12 +684,12 @@ class Domain(object):
         if (BCTypes.tile in allow_bc_types or
             BCTypes.all_types in allow_bc_types):
             # Get tile constraints
-            bcdi = self.get_tile_constraints(atile, di, bcdi)
+            bcdi = atile.get_tile_constraints(self.tiles, di, bcdi)
 
         if (BCTypes.point in allow_bc_types or
             BCTypes.all_types in allow_bc_types):
             # Get point constraints
-            bcdi = self.get_point_constraints(atile, di, bcdi)
+            bcdi = atile.get_point_constraints(self.scratch_points, di, bcdi)
 
         # If neither point nor tile constraint, use domain [lo, hi]
         if bcdi.lo_bc == BCTypes.none:
