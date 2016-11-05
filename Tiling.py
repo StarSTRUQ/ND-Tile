@@ -165,12 +165,13 @@ class Plane(object):
         self.geom_norm_resd = np.sqrt(np.sum(self.norm_resd**2))
         
 class Tile(object):
-    def __init__(self, points=[], lo=[], hi=[], fit_guess=None, dm=None):
+    def __init__(self, points=[], lo=[], hi=[], fit_guess=None, dm=None, smask=None):
         self.points = points
         self.fit_guess = fit_guess
         self.plane_fit = None
         self.previous_tilde_resd = None # Value of tilde_resd on the previous plane fit
         self.fresh_plane_fit = False # Is the plane fit current?
+        self.virtual_tile = False # True if this tile represents empty space
         self.lo = lo
         self.hi = hi
         self.dm = dm
@@ -180,6 +181,13 @@ class Tile(object):
             self.dm = points[0].dm
         if points and (not list(self.lo) or not list(self.hi)):
             self.boundary_minimize()
+        # Surface mask smask
+        # smask[di] is none if the tile is thick in that dimension
+        # smask[di] is down or up if the tile is a lower or upper surface of any tile
+        if not smask:
+            self.smask = [BCTypes.none for j in range(self.dm)]
+        else:
+            self.smask = smask
 
     def gen_vertices(self):
         """
@@ -199,14 +207,24 @@ class Tile(object):
         is that, although the surface and Tile are of the same
         dimensionality, there is at least one dimension di
         in which the surface tile has lo[di] == hi[di] == constant.
+
+        In case this tile is already a surface, then only set the 
+        constraint lo[di] == hi[di] == constant if lo[di] != hi[di].
         """
-        for di in range(self.dm):
+        for di in self.get_nonconstant_dimensions():
             lo = self.lo[:]
             hi = self.hi[:]
-            for bvec in [self.lo, self.hi]:
+            sm = self.smask[:]
+            for j, bvec in enumerate([self.lo, self.hi]):
                 lo[di] = bvec[di]
                 hi[di] = bvec[di]
-                yield Tile(lo=lo, hi=hi)
+                if j == 0:
+                    # surface represents lo[di]
+                    sm[di] = BCTypes.down
+                else:
+                    # surface represents hi[di]
+                    sm[di] = BCTypes.up
+                yield Tile(lo=lo, hi=hi, smask=sm)
 
     def get_constant_dimensions(self):
         """
@@ -980,6 +998,26 @@ class Domain(object):
                 revised_atile = self.set_tile_boundaries(atile,
                                                          allow_bc_types=[BCTypes.tile])
                 revised_tiles = revised_tiles or revised_atile
+
+    def create_empty_subtiles(self, dom):
+        """
+        Creates empty subtiles to cover the domain dom
+        """
+        #DON
+        dom_tile = Tile(lo=dom.lo, hi=dom.hi)
+        for atile in dom.tiles:
+            for sface in atile.gen_surfaces():
+                for di in dom_tile.get_nonconstant_dimensions():
+                    bcdi = sface.get_tile_constraints(dom.tiles, di)
+                
+    def ensure_domain_coverage(self):
+        """
+        Create virtual tiles to cover empty regions following the 
+        domain tiling passes in self.do_domain_tiling()
+        """
+        expand_or_create = True
+        while expand_or_create:
+            expand_or_create = self.create_empty_subtiles(self)
 
     def do_domain_tiling(self, gnr_thresh=None, tilde_resd_thresh=None,
                          tilde_resd_factor=None):
