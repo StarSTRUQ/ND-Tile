@@ -165,13 +165,13 @@ class Plane(object):
         self.geom_norm_resd = np.sqrt(np.sum(self.norm_resd**2))
         
 class Tile(object):
-    def __init__(self, points=[], lo=[], hi=[], fit_guess=None, dm=None, smask=None):
+    def __init__(self, points=[], lo=[], hi=[], fit_guess=None, dm=None, smask=None, virtual=False):
         self.points = points
         self.fit_guess = fit_guess
         self.plane_fit = None
         self.previous_tilde_resd = None # Value of tilde_resd on the previous plane fit
         self.fresh_plane_fit = False # Is the plane fit current?
-        self.virtual_tile = False # True if this tile represents empty space
+        self.virtual = virtual # True if this tile represents empty space
         self.lo = lo
         self.hi = hi
         self.dm = dm
@@ -189,6 +189,19 @@ class Tile(object):
         else:
             self.smask = smask
 
+    def colocated_with(self, btile):
+        """
+        Determine whether self and btile are colocated.
+        """
+        if not (list(self.lo) and list(self.hi) and
+                list(btile.lo) and list(btile.hi)):
+            return False
+        else:
+            colocated_lo = self.lo == btile.lo
+            colocated_hi = self.hi == btile.hi
+            colocated = colocated_lo and colocated_hi
+            return colocated
+            
     def gen_vertices(self):
         """
         Return a generator for the vertices of this Tile.
@@ -224,7 +237,7 @@ class Tile(object):
                 else:
                     # surface represents hi[di]
                     sm[di] = BCTypes.up
-                yield Tile(lo=lo, hi=hi, smask=sm)
+                yield Tile(lo=lo, hi=hi, smask=sm, virtual=True)
 
     def get_constant_dimensions(self):
         """
@@ -252,13 +265,17 @@ class Tile(object):
 
     def print_tile_report(self, tile_number=None):
         """Prints report of this Tile"""
-        print('---TILE {} REPORT---'.format(tile_number))
-        print('lo = {}, hi = {}, npts = {}'.format(self.lo, self.hi, len(self.points)))
-        print('---GEOM. MEAN NORM RESD. = {} ---'.format(self.get_geom_norm_resd()))
-        print('---TILDE RESD. = {} ---'.format(self.get_tilde_resd()))
-        print('-------POINTS------')
-        for p in self.points:
-            print('{}: {}'.format(p.r, p.v))
+        print('--- TILE {} REPORT ---'.format(tile_number))
+        print('--- VIRTUAL TILE = {} ---'.format(self.virtual))
+        print('--- LO = {} ---'.format(self.lo))
+        print('--- HI = {} ---'.format(self.hi))
+        if not self.virtual:
+            print('--- NPTS = {} ---'.format(len(self.points)))
+            print('--- GEOM. MEAN NORM RESD. = {} ---'.format(self.get_geom_norm_resd()))
+            print('--- TILDE RESD. = {} ---'.format(self.get_tilde_resd()))
+            print('------- POINTS ------')
+            for p in self.points:
+                print('{}: {}'.format(p.r, p.v))
 
     def get_volume(self):
         """
@@ -648,7 +665,8 @@ class Domain(object):
     def __init__(self, points=[], lo=[], hi=[], dm=None):
         # The Domain is just a set of Point objects
         # and functions for tiling them into a set of Tile objects.        
-        self.tiles = []
+        self.tiles = []         # Tiles contain points
+        self.virtual_tiles = [] # virtual Tiles are empty
         self.lo = lo
         self.hi = hi
         self.dm = dm
@@ -678,12 +696,23 @@ class Domain(object):
         # Plot Tile outlines
         linestyle_options = ['-', '--', '-.', ':']
         ls_cycler = DMCycle(len(linestyle_options))
-        for i, t in enumerate(self.tiles):
+        for i, t in enumerate(self.tiles + self.virtual_tiles):
             # Plot Tile outline
+            if t.virtual:
+                # Plotting options for a virtual tile
+                edgecolor_value = 'red'
+                hatch_value = '/'
+                linestyle_value = '-' # linestyle_options[ls_cycler.cycle()]
+            else:
+                # Plotting options for a real tile
+                edgecolor_value = 'orange'
+                hatch_value = None
+                linestyle_value = '-' # linestyle_options[ls_cycler.cycle()]
             ax.add_patch(Rectangle((t.lo[dimx], t.lo[dimy]), t.hi[dimx]-t.lo[dimx], t.hi[dimy]-t.lo[dimy], facecolor='None',
-                                   edgecolor='orange',
+                                   edgecolor=edgecolor_value,
+                                   hatch=hatch_value,
                                    linewidth=1.5,
-                                   linestyle=linestyle_options[ls_cycler.cycle()]))
+                                   linestyle=linestyle_value))
             tile_center_x = 0.5 * (t.lo[dimx] + t.hi[dimx])
             tile_center_y = 0.5 * (t.lo[dimy] + t.hi[dimy])
             # Plot Text in the center of the Tile
@@ -999,25 +1028,84 @@ class Domain(object):
                                                          allow_bc_types=[BCTypes.tile])
                 revised_tiles = revised_tiles or revised_atile
 
-    def create_empty_subtiles(self, dom):
+    def do_empty_tiling(self):
         """
-        Creates empty subtiles to cover the domain dom
+        Creates empty virtual subtiles to cover the domain dom.
+
+        Adds the created virtual subtiles to the domain dom.
+
+        Returns True if virtual Tiles were created.
+
+        Returns False if no virtual Tiles could be created.
+
+        Because the Domain Tile loop doesn't update itself
+        as Tiles are added to the Domain, you should loop over
+        this function until it returns None to indicate
+        the entire Domain has been Tiled.
         """
-        #DON
-        dom_tile = Tile(lo=dom.lo, hi=dom.hi)
-        for atile in dom.tiles:
-            for sface in atile.gen_surfaces():
-                for di in dom_tile.get_nonconstant_dimensions():
-                    bcdi = sface.get_tile_constraints(dom.tiles, di)
+        dom_tile = Tile(lo=self.lo, hi=self.hi)
+        created_virtual_tiles = False
+        # Loop over Tiles in Domain
+        for atile in self.tiles:
+            # Find the dimensions in which Tile has
+            # a nonzero extent and can exhibit
+            # a surface osculation with another Tile.
+            # The Point Tiling passes over the Domain
+            # will have ensured all point-containing
+            # fully-dimensional Tiles will have extent
+            # in every dimension because of the
+            # Point-constrained boundary conditions.
+            ncdim = dom_tile.get_nonconstant_dimensions()
+            # For each nonconstant dimension in ncdim,
+            # Find the Surfaces of atile which osculate the
+            # other Tiles in Domain as (sface, ctile)
+            # where sface is a Surface of atile and
+            # where ctile is the intersection of sface
+            # and another Tile in Domain.
+            # Create a list of objects (sface, ctile): tosc
+            # such that sface.lo != ctile.lo and sface.hi != ctile.hi
+            for di in ncdim:
+                tosc = []
+                for btile in self.tiles:
+                    if not atile == btile:
+                        (sface, ctile) = atile.whether_osculates_tile(btile, di)
+                        if ctile and not sface.colocated_with(ctile):
+                            tosc.append((sface, ctile))
+                
+                # BEGIN SURFACE LOOP
+                # For each unique surface in atile:
+                # Get a list of all (sface, ctile) for which surface==sface.
+                # If there is a surface of atile with no entries in tosc,
+                # then it is osculated by no other tile and
+                # a virtual tile can be extended from that entire surface.
+                
+                # Create Domain sdom from sface
+                # If len(ncdim) == 1:
+                # Add Tile sface to sdom as a virtual tile
+                # Else:
+                # Tile sdom by its associated ctile objects.
+                # Get the virtual tiles on sdom. (call this recursively)
+                # Endif
+                
+                # Extend the virtual tiles on sdom along di,
+                # using the Tile constraints of Domain dom,
+                # and add them to Domain dom as virtual tiles
+                # ONLY IF YOU COULD DO A NONZERO EXTENSION ALONG DI
+
+                # Update boolean created_virtual_tiles
+                # END SURFACE LOOP
+
+                # Return created_virtual_tiles
+                return created_virtual_tiles
                 
     def ensure_domain_coverage(self):
         """
         Create virtual tiles to cover empty regions following the 
         domain tiling passes in self.do_domain_tiling()
         """
-        expand_or_create = True
-        while expand_or_create:
-            expand_or_create = self.create_empty_subtiles(self)
+        created_virtual_tiles = True
+        while created_virtual_tiles:
+            created_virtual_tiles = self.do_empty_tiling()
 
     def do_domain_tiling(self, gnr_thresh=None, tilde_resd_thresh=None,
                          tilde_resd_factor=None):
