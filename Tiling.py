@@ -175,9 +175,9 @@ class Tile(object):
         self.lo = lo
         self.hi = hi
         self.dm = dm
-        if not dm and lo:
-            self.dm = len(lo)
-        if all(points) and not dm:
+        if not dm and list(self.lo):
+            self.dm = len(self.lo)
+        if points and not dm:
             self.dm = points[0].dm
         if points and (not list(self.lo) or not list(self.hi)):
             self.boundary_minimize()
@@ -212,9 +212,9 @@ class Tile(object):
         dimbcs = [[self.lo[i], self.hi[i]] for i in range(self.dm)]
         return itertools.product(*dimbcs)
 
-    def gen_surfaces(self):
+    def get_surfaces(self, dj=None):
         """
-        Generate the surfaces for this Tile as Tile objects.
+        Return the surfaces for this Tile as Tile objects.
 
         The distinguishing feature of the surface relative to this Tile
         is that, although the surface and Tile are of the same
@@ -223,21 +223,30 @@ class Tile(object):
 
         In case this tile is already a surface, then only set the 
         constraint lo[di] == hi[di] == constant if lo[di] != hi[di].
+
+        If dj is provided, only return surfaces for which
+        lo[dj] == hi[dj] == constant. Otherwise return
+        all such surfaces.
+        If dj is provided and it is not a nonconstant dimension,
+        then return an empty list.
         """
+        stiles = []
         for di in self.get_nonconstant_dimensions():
-            lo = self.lo[:]
-            hi = self.hi[:]
-            sm = self.smask[:]
-            for j, bvec in enumerate([self.lo, self.hi]):
-                lo[di] = bvec[di]
-                hi[di] = bvec[di]
-                if j == 0:
-                    # surface represents lo[di]
-                    sm[di] = BCTypes.down
-                else:
-                    # surface represents hi[di]
-                    sm[di] = BCTypes.up
-                yield Tile(lo=lo, hi=hi, smask=sm, virtual=True)
+            if not dj or di == dj:
+                lo = self.lo[:]
+                hi = self.hi[:]
+                sm = self.smask[:]
+                for j, bvec in enumerate([self.lo, self.hi]):
+                    lo[di] = bvec[di]
+                    hi[di] = bvec[di]
+                    if j == 0:
+                        # surface represents lo[di]
+                        sm[di] = BCTypes.down
+                    else:
+                        # surface represents hi[di]
+                        sm[di] = BCTypes.up
+                    stiles.append(Tile(lo=lo, hi=hi, smask=sm, virtual=True))
+        return stiles
 
     def get_constant_dimensions(self):
         """
@@ -480,9 +489,9 @@ class Tile(object):
             return negative
         
         # Now determine if atile and self osculate
-        for sface in self.gen_surfaces():
-            for aface in atile.gen_surfaces():
-                if sface[di] == aface[di]:
+        for sface in self.get_surfaces(di):
+            for aface in atile.get_surfaces(di):
+                if sface.hi[di] == aface.hi[di]:
                     # sface and aface osculate
                     # now find the intersection tile between sface and aface
                     ctile = sface.get_tile_intersection(aface)
@@ -497,7 +506,7 @@ class Tile(object):
         """
         lo = np.maximum(self.lo, atile.lo)
         hi = np.minimum(self.hi, atile.hi)
-        return Tile(lo=lo, hi=hi)
+        return Tile(lo=lo, hi=hi, virtual=True)
 
     def get_tile_constraints(self, tiles, di, bcdi=None):
         """
@@ -671,17 +680,16 @@ class Domain(object):
         self.hi = hi
         self.dm = dm
         self.points = points
+        self.scratch_points = []
         self.plot_num = 0
 
-        if lo and hi and len(lo) != len(hi):
-            print('ERROR: lo and hi supplied with incongruous dimensions.')
-            exit()
-        else:
-            if not self.dm:
-                self.dm = len(lo)
-
-        # Set up dimension cycling
-        self.dm_cycle = DMCycle(self.dm)
+        if list(lo) and list(hi):
+            if len(lo) != len(hi):
+                print('ERROR: lo and hi supplied with incongruous dimensions.')
+                exit()
+            else:
+                if not self.dm:
+                    self.dm = len(lo)
 
         # Set up boundary masks for points
         if list(points) and list(lo) and list(hi):
@@ -699,11 +707,13 @@ class Domain(object):
         for i, t in enumerate(self.tiles + self.virtual_tiles):
             # Plot Tile outline
             if t.virtual:
+                print('plotting a virtual tile {}'.format(i))
                 # Plotting options for a virtual tile
                 edgecolor_value = 'red'
                 hatch_value = '/'
                 linestyle_value = '-' # linestyle_options[ls_cycler.cycle()]
             else:
+                print('plotting a real tile {}'.format(i))
                 # Plotting options for a real tile
                 edgecolor_value = 'orange'
                 hatch_value = None
@@ -730,17 +740,16 @@ class Domain(object):
         divider = make_axes_locatable(ax)
         cax = divider.append_axes('right', size='5%', pad=0.05)
         cmap = mpl.cm.viridis
-        if list(self.points):
+        if self.points:
             point_scalar_range = np.array([p.v for p in self.points])
-        else:
-            point_scalar_range = np.array([p.v for p in self.scratch_points])            
-        bounds = np.linspace(np.amin(point_scalar_range), np.amax(point_scalar_range), num=5)
-        norm = mpl.colors.Normalize(vmin=np.amin(bounds),vmax=np.amax(bounds))
-        img = ax.scatter(points_x, points_y, c=points_v, cmap=cmap, norm=norm)
-        plt.colorbar(img, cmap=cmap, cax=cax, ticks=bounds, norm=norm, label='Scalar Value')
+            bounds = np.linspace(np.amin(point_scalar_range), np.amax(point_scalar_range), num=5)
+            norm = mpl.colors.Normalize(vmin=np.amin(bounds),vmax=np.amax(bounds))
+            img = ax.scatter(points_x, points_y, c=points_v, cmap=cmap, norm=norm)
+            plt.colorbar(img, cmap=cmap, cax=cax, ticks=bounds, norm=norm, label='Scalar Value')
         # Plot points outside Tiles
-        for i, p in enumerate(self.scratch_points):
-            ax.scatter(p.r[dimx], p.r[dimy], color='red')
+        if self.scratch_points:
+            for i, p in enumerate(self.scratch_points):
+                ax.scatter(p.r[dimx], p.r[dimy], color='red')
         ax.set_ylabel('Dimension {}'.format(dimy))
         ax.set_xlabel('Dimension {}'.format(dimx))
         plt.tight_layout()
@@ -750,8 +759,12 @@ class Domain(object):
         else:
             this_plot_num = save_num
         print('SAVING PLOT NUMBER {}'.format(this_plot_num))
-        plt.savefig('tiled_domain_{0:04d}.eps'.format(this_plot_num))
-        plt.savefig('tiled_domain_{0:04d}.png'.format(this_plot_num))
+        if type(this_plot_num) == int:
+            nstr = '{0:04d}'.format(this_plot_num)
+        else:
+            nstr = str(this_plot_num)
+        plt.savefig('tiled_domain_{}.eps'.format(nstr))
+        plt.savefig('tiled_domain_{}.png'.format(nstr))
         plt.close()
 
     def print_domain_report(self):
@@ -763,7 +776,7 @@ class Domain(object):
         for p in self.scratch_points:
             print('{}: {}'.format(p.r, p.v))
         print('--------TILES------')
-        for i, t in enumerate(self.tiles):
+        for i, t in enumerate(self.tiles + self.virtual_tiles):
             t.print_tile_report(tile_number=i)
         
     def bc_init_mask_points(self, plist):
@@ -890,9 +903,6 @@ class Domain(object):
         return dfun
 
     def form_tile(self, decision_function=None):
-        # Cycle through dimensions
-        di = self.dm_cycle.cycle()
-
         # print('Executing Domain.form_tile()')
         # print('Number of points in domain: {}'.format(len(self.scratch_points)))
         # print('Number of tiles in domain: {}'.format(len(self.tiles)))
@@ -913,7 +923,6 @@ class Domain(object):
                 pi_start = pi
         if not p_start and self.scratch_points:
             print('Points remain but no starting point could be found!')
-            print('Dimension {}'.format(di))
             print('Number of Domain Points {}'.format(len(self.scratch_points)))
             print('Number of Domain Tiles {}'.format(len(self.tiles)))
             raise TilingError(err_type=TETypes.cannot_start_point,
@@ -1043,10 +1052,12 @@ class Domain(object):
         this function until it returns None to indicate
         the entire Domain has been Tiled.
         """
-        dom_tile = Tile(lo=self.lo, hi=self.hi)
+        print('Entered DO_EMPTY_TILING')
+        dom_tile = Tile(lo=self.lo, hi=self.hi, virtual=True)
         created_virtual_tiles = False
         # Loop over Tiles in Domain
-        for atile in self.tiles:
+        for iatile, atile in enumerate(self.tiles + self.virtual_tiles):
+            print('examining tile {}'.format(iatile))
             # Find the dimensions in which Tile has
             # a nonzero extent and can exhibit
             # a surface osculation with another Tile.
@@ -1056,6 +1067,7 @@ class Domain(object):
             # in every dimension because of the
             # Point-constrained boundary conditions.
             ncdim = dom_tile.get_nonconstant_dimensions()
+            print('nonconstant dimensions: {}'.format(ncdim))
             # For each nonconstant dimension in ncdim,
             # Find the Surfaces of atile which osculate the
             # other Tiles in Domain as (sface, ctile)
@@ -1065,48 +1077,100 @@ class Domain(object):
             # Create a list of objects (sface, ctile): tosc
             # such that sface.lo != ctile.lo and sface.hi != ctile.hi
             for di in ncdim:
+                print('dimension {}'.format(di))
                 tosc = []
-                for btile in self.tiles:
+                for ibtile, btile in enumerate(self.tiles + self.virtual_tiles):
                     if not atile == btile:
                         (sface, ctile) = atile.whether_osculates_tile(btile, di)
                         if ctile and not sface.colocated_with(ctile):
+                            print('found osculation between tiles {} and {}'.format(iatile, ibtile))
                             tosc.append((sface, ctile))
-                
-                # BEGIN SURFACE LOOP
-                # For each unique surface in atile:
-                # Get a list of all (sface, ctile) for which surface==sface.
-                # If there is a surface of atile with no entries in tosc,
-                # then it is osculated by no other tile and
-                # a virtual tile can be extended from that entire surface.
-                
-                # Create Domain sdom from sface
-                # If len(ncdim) == 1:
-                # Add Tile sface to sdom as a virtual tile
-                # Else:
-                # Tile sdom by its associated ctile objects.
-                # Get the virtual tiles on sdom. (call this recursively)
-                # Endif
-                
-                # Extend the virtual tiles on sdom along di,
-                # using the Tile constraints of Domain dom,
-                # and add them to Domain dom as virtual tiles
-                # ONLY IF YOU COULD DO A NONZERO EXTENSION ALONG DI
 
-                # Update boolean created_virtual_tiles
-                # END SURFACE LOOP
+                print('atile.smask: {}'.format(atile.smask))
+                for aface in atile.get_surfaces(di):
+                    # For each unique surface in atile (aface):
+                    # Get a list of all (sface, ctile) for which surface==sface.
+                    # If there is a surface of atile with no entries in tosc,
+                    # then it is osculated by no other tile and
+                    # a virtual tile can be extended from that entire surface.
+                    surface_tiles = []
+                    for (sface, ctile) in tosc:
+                        print('appending ctile')
+                        if aface == sface:
+                            surface_tiles.append(ctile)
+                    if not surface_tiles:
+                        print('no surface_tiles, using aface')
+                        surface_tiles.append(aface)
 
-                # Return created_virtual_tiles
-                return created_virtual_tiles
+                    # Create Domain sdom from aface
+                    sdom = Domain(lo=aface.lo[:], hi=aface.hi[:])
+                    
+                    if len(ncdim) == 1:
+                        print('ONE DIMENSIONAL')
+                        sdom.virtual_tiles.append(aface)
+                    else:
+                        sdom.tiles = surface_tiles
+                        print('CALLING DO_EMPTY_TILING RECURSIVELY')
+                        sdom.do_empty_tiling()
+                        sdom.plot_domain_slice(show_tile_id=True, save_num='{}-{}'.format(iatile, di))
+
+                    # Extend the virtual tiles on sdom along di,
+                    # using the Tile constraints of Domain self.
+                    # Include both real and virtual tiles to set
+                    # the constraints.
+                    # Add the virtual tiles to Domain self as virtual tiles
+                    # ONLY IF YOU COULD DO A NONZERO EXTENSION ALONG DI
+                    for vtile in sdom.virtual_tiles:
+                        print('vtile smask: {}'.format(vtile.smask))
+                        bcdi = vtile.get_tile_constraints(tiles=(self.tiles +
+                                                                 self.virtual_tiles),
+                                                          di=di)
+                        vtile_could_extend = False
+                        if vtile.smask[di] == BCTypes.down:
+                            if bcdi.lo_bc == BCTypes.none:
+                                # Use the domain wall if no tile constraint
+                                print('using domain wall')
+                                vtile_lo = sdom.lo[di]
+                            else:
+                                # Use the tile constraint
+                                print('using tile constraint')
+                                vtile_lo = bcdi.lo_bc
+                            if vtile_lo < vtile.lo[di]:
+                                # This is an extension of vtile
+                                vtile_could_extend = True
+                            vtile.lo[di] = vtile_lo
+                        elif vtile.smask[di] == BCTypes.up:
+                            if bcdi.hi_bc == BCTypes.none:
+                                # Use the domain wall if no tile constraint
+                                print('using domain wall')
+                                vtile_hi = sdom.hi[di]
+                            else:
+                                # Use the tile constraint
+                                print('using tile constraint')
+                                vtile_hi = bcdi.hi_bc
+                            if vtile_hi > vtile.hi[di]:
+                                # This is an extension of vtile
+                                vtile_could_extend = True
+                            vtile.hi[di] = vtile_hi
+                        else:
+                            # Something went horribly wrong setting the virtual tile smask
+                            print('THATS IMPOSSIBLE!!')
+                            exit()
+                            
+                        # If you can extend vtile along di, update vtile.smask
+                        # and add it to self.virtual_tiles
+                        if vtile_could_extend:
+                            print('could extend vtile. appending.')
+                            vtile.smask[di] = BCTypes.none
+                            self.virtual_tiles.append(vtile)
+                            # Update boolean created_virtual_tiles
+                            created_virtual_tiles = True
+            # Return before continuing to the next atile
+            # You want the loop to consider the
+            # virtual tiles you just added to this Domain
+            # so call this function again if created_virtual_tiles == True.
+            return created_virtual_tiles
                 
-    def ensure_domain_coverage(self):
-        """
-        Create virtual tiles to cover empty regions following the 
-        domain tiling passes in self.do_domain_tiling()
-        """
-        created_virtual_tiles = True
-        while created_virtual_tiles:
-            created_virtual_tiles = self.do_empty_tiling()
-
     def do_domain_tiling(self, gnr_thresh=None, tilde_resd_thresh=None,
                          tilde_resd_factor=None):
         # Initialize a list of scratch points for tiling
@@ -1143,8 +1207,16 @@ class Domain(object):
 
         # Update the boundaries of existing tiles to help eliminate empty untiled space
         self.bound_existing_tiles()
-                
+        self.plot_domain_slice(show_tile_id=False)
+
+        # Tile any remaining empty untiled space into virtual tiles
+        created_virtual_tiles = True
+        while created_virtual_tiles:
+            print('>>>CALLING DO_EMPTY_TILING')
+            created_virtual_tiles = self.do_empty_tiling()
+            self.plot_domain_slice(show_tile_id=False)
+
         # Output Results
         self.plot_domain_slice()
         self.print_domain_report()
-
+        
