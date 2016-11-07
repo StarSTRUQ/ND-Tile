@@ -91,7 +91,7 @@ class TilingError(Exception):
 class Point(object):
     def __init__(self, r=[], v=None):
         # Position in n-D space
-        self.r = np.array(r)
+        self.r = np.array(r, copy=True)
         # Value of point (Scalar)
         self.v = v
         self.dm = len(r)
@@ -133,8 +133,8 @@ class Plane(object):
         self.norm_resd = None
         self.geom_norm_resd = None
         self.tilde_resd = None
-        self.lo = lo
-        self.hi = hi
+        self.lo = np.copy(lo)
+        self.hi = np.copy(hi)
         self.center = None
         if list(self.lo) and list(self.hi):
             # Determine center and width from [lo, hi]
@@ -172,22 +172,27 @@ class Tile(object):
         self.previous_tilde_resd = None # Value of tilde_resd on the previous plane fit
         self.fresh_plane_fit = False # Is the plane fit current?
         self.virtual = virtual # True if this tile represents empty space
-        self.lo = lo
-        self.hi = hi
+        self.lo = np.copy(lo)
+        self.hi = np.copy(hi)
         self.dm = dm
         if not dm and list(self.lo):
             self.dm = len(self.lo)
         if points and not dm:
             self.dm = points[0].dm
         if points and (not list(self.lo) or not list(self.hi)):
+            print('init tile lo = {}'.format(self.lo))
+            print('init tile hi = {}'.format(self.hi))
+            print('Making tile, calling boundary_minimize')
             self.boundary_minimize()
+            print('init tile lo = {}'.format(self.lo))
+            print('init tile hi = {}'.format(self.hi))
         # Surface mask smask
         # smask[di] is none if the tile is thick in that dimension
         # smask[di] is down or up if the tile is a lower or upper surface of any tile
         if not smask:
             self.smask = [BCTypes.none for j in range(self.dm)]
         else:
-            self.smask = smask
+            self.smask = smask[:]
 
     def colocated_with(self, btile):
         """
@@ -212,7 +217,7 @@ class Tile(object):
         dimbcs = [[self.lo[i], self.hi[i]] for i in range(self.dm)]
         return itertools.product(*dimbcs)
 
-    def get_surfaces(self, dj=None):
+    def get_surfaces(self, dj=-1):
         """
         Return the surfaces for this Tile as Tile objects.
 
@@ -225,27 +230,52 @@ class Tile(object):
         constraint lo[di] == hi[di] == constant if lo[di] != hi[di].
 
         If dj is provided, only return surfaces for which
-        lo[dj] == hi[dj] == constant. Otherwise return
-        all such surfaces.
+        lo[dj] == hi[dj] == constant. 
+
+        Otherwise return all such surfaces if dj is not
+        provided (-1). I'm using -1 here because 0 is
+        a valid dimension but tests as a boolean False.
+
         If dj is provided and it is not a nonconstant dimension,
         then return an empty list.
         """
+        print('GENERATING SURFACES FOR TILE Z ALONG DIM {}'.format(dj))
+        print('TILE Z REPORT::::')
+        self.print_tile_report()
         stiles = []
         for di in self.get_nonconstant_dimensions():
-            if not dj or di == dj:
-                lo = self.lo[:]
-                hi = self.hi[:]
+            if dj == -1 or di == dj:
+                lo = np.copy(self.lo)
+                hi = np.copy(self.hi)
                 sm = self.smask[:]
                 for j, bvec in enumerate([self.lo, self.hi]):
+                    print('Starting j,bv = {}: {}'.format(j, bvec))
+                    print('Starting self lo = {}'.format(self.lo))
+                    print('Starting self hi = {}'.format(self.hi))
+                    print('Starting self smask = {}'.format(self.smask))
                     lo[di] = bvec[di]
                     hi[di] = bvec[di]
+                    print('Intermed. j,bv = {}: {}'.format(j, bvec))
+                    print('Intermed. self lo = {}'.format(self.lo))
+                    print('Intermed. self hi = {}'.format(self.hi))
                     if j == 0:
                         # surface represents lo[di]
                         sm[di] = BCTypes.down
                     else:
                         # surface represents hi[di]
                         sm[di] = BCTypes.up
-                    stiles.append(Tile(lo=lo, hi=hi, smask=sm, virtual=True))
+                    print('Intermed. self smask = {}'.format(self.smask))
+                    print('lo = {}'.format(lo))
+                    print('hi = {}'.format(hi))
+                    print('sm = {}'.format(sm))
+                    sface = Tile(lo=lo, hi=hi, smask=sm, virtual=True)
+                    print('MADE A SURFACE, HERE IS THE REPORT::::')
+                    sface.print_tile_report()
+                    stiles.append(sface)
+                    print('Ending j,bv = {}: {}'.format(j, bvec))
+                    print('Ending self lo = {}'.format(self.lo))
+                    print('Ending self hi = {}'.format(self.hi))
+                    print('Ending self smask = {}'.format(self.smask))
         return stiles
 
     def get_constant_dimensions(self):
@@ -278,6 +308,7 @@ class Tile(object):
         print('--- VIRTUAL TILE = {} ---'.format(self.virtual))
         print('--- LO = {} ---'.format(self.lo))
         print('--- HI = {} ---'.format(self.hi))
+        print('--- SURFACE MASK = {} ---'.format(self.smask))
         if not self.virtual:
             print('--- NPTS = {} ---'.format(len(self.points)))
             print('--- GEOM. MEAN NORM RESD. = {} ---'.format(self.get_geom_norm_resd()))
@@ -495,6 +526,8 @@ class Tile(object):
                     # sface and aface osculate
                     # now find the intersection tile between sface and aface
                     ctile = sface.get_tile_intersection(aface)
+                    # set smask of ctile to that of aface
+                    ctile.smask = aface.smask[:]
                     return (sface, ctile)
                 
         # Found nothing so atile and self don't osculate
@@ -671,30 +704,60 @@ class Tile(object):
         return self.plane_fit.tilde_resd
 
 class Domain(object):
-    def __init__(self, points=[], lo=[], hi=[], dm=None):
+    def __init__(self, points=[], lo=[], hi=[], dm=None,
+                 plot_lo=[], plot_hi=[], plot_dimfrac=0.9):
         # The Domain is just a set of Point objects
         # and functions for tiling them into a set of Tile objects.        
         self.tiles = []         # Tiles contain points
         self.virtual_tiles = [] # virtual Tiles are empty
-        self.lo = lo
-        self.hi = hi
+        self.lo = np.copy(lo)
+        self.hi = np.copy(hi)
         self.dm = dm
         self.points = points
         self.scratch_points = []
         self.plot_num = 0
 
-        if list(lo) and list(hi):
-            if len(lo) != len(hi):
+        set_photogenic_lims = False
+        if not list(plot_lo):
+            self.plot_lo = np.copy(self.lo)
+            set_photogenic_lims = True
+        else:
+            self.plot_lo = np.copy(plot_lo)
+            
+        if not list(plot_hi):
+            self.plot_hi = np.copy(self.hi)
+            set_photogenic_lims = True
+        else:
+            self.plot_hi = np.copy(plot_hi)
+
+        if set_photogenic_lims:
+            self.photogenic_plot_limits(plot_dimfrac)
+
+        if list(self.lo) and list(self.hi):
+            if len(self.lo) != len(self.hi):
                 print('ERROR: lo and hi supplied with incongruous dimensions.')
                 exit()
             else:
                 if not self.dm:
-                    self.dm = len(lo)
+                    self.dm = len(self.lo)
 
         # Set up boundary masks for points
-        if list(points) and list(lo) and list(hi):
+        if list(points) and list(self.lo) and list(self.hi):
             self.bc_init_mask_points(self.points)
 
+    def photogenic_plot_limits(self, dimfrac=0.9):
+        """
+        Compute the appropriate plot limits [self.plot_lo, self.plot_hi]
+        for which 2-D domain slices will plot the domain [self.lo, self.hi]
+        such that the domain extents in each dimension occupy
+        the fraction dimfrac of their corresponding axis.
+        """
+        center = 0.5 * (self.lo + self.hi)
+        width = self.hi - self.lo
+        plot_width = width/dimfrac
+        self.plot_lo = center - 0.5 * plot_width
+        self.plot_hi = center + 0.5 * plot_width
+            
     def plot_domain_slice(self, dimx=0, dimy=1, save_num=None, show_tile_id=True):
         if self.dm < 2:
             return
@@ -750,6 +813,8 @@ class Domain(object):
         if self.scratch_points:
             for i, p in enumerate(self.scratch_points):
                 ax.scatter(p.r[dimx], p.r[dimy], color='red')
+        ax.set_xlim([self.plot_lo[dimx], self.plot_hi[dimx]])
+        ax.set_ylim([self.plot_lo[dimy], self.plot_hi[dimy]])
         ax.set_ylabel('Dimension {}'.format(dimy))
         ax.set_xlabel('Dimension {}'.format(dimx))
         plt.tight_layout()
@@ -783,9 +848,9 @@ class Domain(object):
         # Set initial boundary masks for list of points plist given domain boundaries
         # Initial because uses domain lo, hi
         dm_hi_pts = [None for i in range(self.dm)]
-        dm_hi_val = self.lo[:]
+        dm_hi_val = np.copy(self.lo)
         dm_lo_pts = [None for i in range(self.dm)]
-        dm_lo_val = self.hi[:]
+        dm_lo_val = np.copy(self.hi)
         for p in plist:
             for di in range(self.dm):
                 # Check high bc
@@ -1054,10 +1119,15 @@ class Domain(object):
         """
         print('Entered DO_EMPTY_TILING')
         dom_tile = Tile(lo=self.lo, hi=self.hi, virtual=True)
+        ncdim = dom_tile.get_nonconstant_dimensions()
+        print('nonconstant dimensions: {}'.format(ncdim))
+        print('self.dm: {}'.format(self.dm))
+        print('dom_tile.dm: {}'.format(dom_tile.dm))
         created_virtual_tiles = False
         # Loop over Tiles in Domain
         for iatile, atile in enumerate(self.tiles + self.virtual_tiles):
-            print('examining tile {}'.format(iatile))
+            print('examining ATILE {}'.format(iatile))
+            atile.print_tile_report()
             # Find the dimensions in which Tile has
             # a nonzero extent and can exhibit
             # a surface osculation with another Tile.
@@ -1066,8 +1136,6 @@ class Domain(object):
             # fully-dimensional Tiles will have extent
             # in every dimension because of the
             # Point-constrained boundary conditions.
-            ncdim = dom_tile.get_nonconstant_dimensions()
-            print('nonconstant dimensions: {}'.format(ncdim))
             # For each nonconstant dimension in ncdim,
             # Find the Surfaces of atile which osculate the
             # other Tiles in Domain as (sface, ctile)
@@ -1087,7 +1155,9 @@ class Domain(object):
                             tosc.append((sface, ctile))
 
                 print('atile.smask: {}'.format(atile.smask))
-                for aface in atile.get_surfaces(di):
+                for iaface, aface in enumerate(atile.get_surfaces(di)):
+                    print('examining AFACE'.format(iaface))
+                    aface.print_tile_report()
                     # For each unique surface in atile (aface):
                     # Get a list of all (sface, ctile) for which surface==sface.
                     # If there is a surface of atile with no entries in tosc,
@@ -1095,15 +1165,16 @@ class Domain(object):
                     # a virtual tile can be extended from that entire surface.
                     surface_tiles = []
                     for (sface, ctile) in tosc:
-                        print('appending ctile')
                         if aface == sface:
+                            print('appending ctile')
                             surface_tiles.append(ctile)
                     if not surface_tiles:
                         print('no surface_tiles, using aface')
                         surface_tiles.append(aface)
 
                     # Create Domain sdom from aface
-                    sdom = Domain(lo=aface.lo[:], hi=aface.hi[:])
+                    sdom = Domain(lo=aface.lo, hi=aface.hi,
+                                  plot_lo=self.plot_lo, plot_hi=self.plot_hi)
                     
                     if len(ncdim) == 1:
                         print('ONE DIMENSIONAL')
@@ -1112,7 +1183,6 @@ class Domain(object):
                         sdom.tiles = surface_tiles
                         print('CALLING DO_EMPTY_TILING RECURSIVELY')
                         sdom.do_empty_tiling()
-                        sdom.plot_domain_slice(show_tile_id=True, save_num='{}-{}'.format(iatile, di))
 
                     # Extend the virtual tiles on sdom along di,
                     # using the Tile constraints of Domain self.
@@ -1130,7 +1200,7 @@ class Domain(object):
                             if bcdi.lo_bc == BCTypes.none:
                                 # Use the domain wall if no tile constraint
                                 print('using domain wall')
-                                vtile_lo = sdom.lo[di]
+                                vtile_lo = self.lo[di]
                             else:
                                 # Use the tile constraint
                                 print('using tile constraint')
@@ -1143,7 +1213,7 @@ class Domain(object):
                             if bcdi.hi_bc == BCTypes.none:
                                 # Use the domain wall if no tile constraint
                                 print('using domain wall')
-                                vtile_hi = sdom.hi[di]
+                                vtile_hi = self.hi[di]
                             else:
                                 # Use the tile constraint
                                 print('using tile constraint')
@@ -1160,16 +1230,26 @@ class Domain(object):
                         # If you can extend vtile along di, update vtile.smask
                         # and add it to self.virtual_tiles
                         if vtile_could_extend:
-                            print('could extend vtile. appending.')
+                            print('could extend vtile. appending to domain self.')
                             vtile.smask[di] = BCTypes.none
                             self.virtual_tiles.append(vtile)
                             # Update boolean created_virtual_tiles
                             created_virtual_tiles = True
+                            
+                    # Plot/Print sdom domain report
+                    print('PLOTTING DOMAIN SDOM')
+                    sdom.plot_domain_slice(show_tile_id=False,
+                                           save_num='ncd-{}_iat-{}_di-{}'.format(len(ncdim),
+                                                                                 iatile, di))
+                    print('PRINTING SDOM REPORT')
+                    sdom.print_domain_report()
             # Return before continuing to the next atile
             # You want the loop to consider the
             # virtual tiles you just added to this Domain
             # so call this function again if created_virtual_tiles == True.
-            return created_virtual_tiles
+            if created_virtual_tiles:
+                break
+        return created_virtual_tiles
                 
     def do_domain_tiling(self, gnr_thresh=None, tilde_resd_thresh=None,
                          tilde_resd_factor=None):
@@ -1219,4 +1299,5 @@ class Domain(object):
         # Output Results
         self.plot_domain_slice()
         self.print_domain_report()
+        print('hi there')
         
