@@ -186,6 +186,8 @@ class Tile(object):
             self.boundary_minimize()
             print('init tile lo = {}'.format(self.lo))
             print('init tile hi = {}'.format(self.hi))
+            
+    def extend_dimension(self, di, dx, surface, direction):
         # Surface mask smask
         # smask[di] is none if the tile is thick in that dimension
         # smask[di] is down or up if the tile is a lower or upper surface of any tile
@@ -194,38 +196,23 @@ class Tile(object):
         else:
             self.smask = smask[:]
 
-    def extend_dimension(self, di, dx, direction=BCTypes.none):
-        """
-        Extend the boundaries of this tile along dimension di by length dx.
-
-        The surface mask smask of this Tile will be checked and
-        if it is not equal to BCTypes.none to indicate this Tile is a surface
-        along dimension di, then expand the surface outwards in the 
-        direction of smask.
-
-        Otherwise, direction should be supplied as an argument. If it is
-        not, consider this an error!!
-        """
-        if (self.smask[di] == BCTypes.none and
-            direction != BCTypes.up and
-            direction != BCTypes.down):
-            print('ERROR: TILE.EXTEND_DIMENSION DOES NOT KNOW WHAT DIRECTION TO USE.')
+        sfvec = None
+        if surface == BCTypes.up:
+            sfvec = self.hi
+        elif surface == BCTypes.down:
+            sfvec = self.lo
+        else:
+            print('ERROR: SURFACE NOT DEFINED!')
             exit()
-        to_update = None
-        sign_update = None
+        dirsign = None
         if direction == BCTypes.up:
-            to_update = self.hi
-            sign_update = +1
+            dirsign = +1
         elif direction == BCTypes.down:
-            to_update = self.lo
-            sign_update = -1
-        elif self.smask[di] == BCTypes.up:
-            to_update = self.hi
-            sign_update = +1
-        elif self.smask[di] == BCTypes.down:
-            to_update = self.lo
-            sign_update = -1
-        to_update[di] += sign_update * dx
+            dirsign = -1
+        else:
+            print('ERROR: DIRECTION NOT DEFINED!')
+            exit()
+        sfvec[di] += dirsign * dx
 
     def get_thinnest_dimension(self):
         """
@@ -277,6 +264,30 @@ class Tile(object):
         dimbcs = [[self.lo[i], self.hi[i]] for i in range(self.dm)]
         return itertools.product(*dimbcs)
 
+    def create_surface(self, di, direction):
+        """
+        Make and return the surface of this Tile
+        defined by the constant dimension (di) where
+        the surface normal of Tile along di on this 
+        surface lies in the direction (direction).
+        """
+        lo = np.copy(self.lo)
+        hi = np.copy(self.hi)
+        sm = self.smask[:]
+        bvec = None
+        if direction = BCTypes.up:
+            bvec = self.hi
+            sm[di] = BCTypes.up
+        elif direction = BCTypes.down:
+            bvec = self.lo
+            sm[di] = BCTypes.down
+        lo[di] = bvec[di]
+        hi[di] = bvec[di]
+        sface = Tile(lo=lo, hi=hi, smask=sm, virtual=True)
+        print('MADE A SURFACE, HERE IS THE REPORT::::')
+        sface.print_tile_report()
+        return sface
+    
     def get_surfaces(self, dj=-1):
         """
         Return the surfaces for this Tile as Tile objects.
@@ -303,21 +314,8 @@ class Tile(object):
         stiles = []
         for di in self.get_nonconstant_dimensions():
             if dj == -1 or di == dj:
-                lo = np.copy(self.lo)
-                hi = np.copy(self.hi)
-                sm = self.smask[:]
-                for j, bvec in enumerate([self.lo, self.hi]):
-                    lo[di] = bvec[di]
-                    hi[di] = bvec[di]
-                    if j == 0:
-                        # surface represents lo[di]
-                        sm[di] = BCTypes.down
-                    else:
-                        # surface represents hi[di]
-                        sm[di] = BCTypes.up
-                    sface = Tile(lo=lo, hi=hi, smask=sm, virtual=True)
-                    print('MADE A SURFACE, HERE IS THE REPORT::::')
-                    sface.print_tile_report()
+                for direction in [BCTypes.down, BCTypes.up]:
+                    sface = create_surface(di, direction)
                     stiles.append(sface)
         return stiles
 
@@ -949,6 +947,46 @@ class Domain(object):
             # print('bedge: {}'.format(p.bedge[di]))
             # print('btype: {}'.format(p.btype[di]))
 
+    def propagate_tile_perturbation(self, from_tile, di, dx, surface, direction):
+        """
+        Extend the boundaries of from_tile along dimension di by length dx.
+
+        Find the other tiles in the domain which extending this boundary
+        would either interfere with or pull away from if it already osculates
+        them along dimension di. Correct those tile dimensions and propagate
+        the changes throughout the domain recursively. Never shrink a tile
+        by more than dx if it's of width dx or smaller. In that case, leave
+        an empty region.
+
+        The surface mask smask of this Tile will be checked and
+        if it is not equal to BCTypes.none to indicate this Tile is a surface
+        along dimension di, then expand the surface outwards in the 
+        direction of smask.
+
+        Surface and Direction should be either BCTypes.up or BCTypes.down
+        to indicate whether lo or hi is to be shifted and in what direction.
+
+        Otherwise, direction should be supplied as an argument. If it is
+        not, consider this an error!!
+        """
+        # Extend the surface of from_tile in the direction (direction)
+        # from its up or down (surface) in dimension di
+        # by the width dx.
+        sface = create_surface(di, direction)
+        sface.extend_dimension(di, dx, direction, direction)
+        # Find the tiles in the domain which sface overlaps.
+        olap_tiles = sface.overlaps_tiles(self.tiles + self.virtual_tiles)
+        for otile in olap_tiles:
+            # Shrink otile in dimension di
+            # in the direction opposite the extension direction
+            print('SHRINKING TILE ALONG DIMENSION {}'.format(di))
+            otile.extend_dimension(di, dx, -direction, direction)
+            otile.print_tile_report()
+        # Extend btile in the extension direction
+        print('EXTENDING TILE ALONG DIMENSION {}'.format(di))
+        btile.extend_dimension(di, dx, direction, direction)
+        btile.print_tile_report()
+            
     def get_tile_boundaries(self, atile, di, allow_bc_types=[BCTypes.all_types]):
         """
         Given atile and a dimension di, return the [lo, hi] boundaries in a BCDim object.
@@ -1419,31 +1457,21 @@ class Domain(object):
             else:
                 direction = BCTypes.down
 
+            can_propagate = False
             for btile, sface, ctile in tosc:
                 if sface.smask[di] != direction:
                     continue
-                # Extend the surface sface in the direction of vtile
-                # by the width of vtile in dimension di
-                sface.extend_dimension(di, dx)
-                # Find the tiles in the domain which sface overlaps.
-                olap_tiles = sface.overlaps_tiles(self.tiles + self.virtual_tiles)
-                for otile in olap_tiles:
-                    # Shrink otile in dimension di
-                    # in the direction opposite the extension direction
-                    print('SHRINKING TILE ALONG DIMENSION {}'.format(di))
-                    otile.extend_dimension(di, dx, direction=-direction)
-                    otile.print_tile_report()
-                # Extend btile in the extension direction
-                print('EXTENDING TILE ALONG DIMENSION {}'.format(di))
-                btile.extend_dimension(di, dx, direction=direction)
-                btile.print_tile_report()
-            # Pop vtile from self.virtual_tiles
-            self.virtual_tiles.pop(ivtile)
-            # Return to the calling code so
-            # the loop over self.virtual_tiles
-            # can be restarted to avoid indexing
-            # errors due to the pop.
-            return True # True to indicate we eliminated a vtile
+                can_propagate = self.propagate_tile_perturbation(btile, di, dx, direction, direction)
+                if not can_propagate:
+                    break
+            if can_propagate:
+                # Pop vtile from self.virtual_tiles
+                self.virtual_tiles.pop(ivtile)
+                # Return to the calling code so
+                # the loop over self.virtual_tiles
+                # can be restarted to avoid indexing
+                # errors due to the pop.
+                return True # True to indicate we eliminated a vtile
         return False # Return False if no virtual tiles could be eliminated.
 
     def static_tile_assign_points(self):
