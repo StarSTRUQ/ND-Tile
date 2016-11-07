@@ -239,9 +239,7 @@ class Tile(object):
         If dj is provided and it is not a nonconstant dimension,
         then return an empty list.
         """
-        print('GENERATING SURFACES FOR TILE Z ALONG DIM {}'.format(dj))
-        print('TILE Z REPORT::::')
-        self.print_tile_report()
+        print('GENERATING SURFACES FOR TILE ALONG DIM {}'.format(dj))
         stiles = []
         for di in self.get_nonconstant_dimensions():
             if dj == -1 or di == dj:
@@ -249,33 +247,18 @@ class Tile(object):
                 hi = np.copy(self.hi)
                 sm = self.smask[:]
                 for j, bvec in enumerate([self.lo, self.hi]):
-                    print('Starting j,bv = {}: {}'.format(j, bvec))
-                    print('Starting self lo = {}'.format(self.lo))
-                    print('Starting self hi = {}'.format(self.hi))
-                    print('Starting self smask = {}'.format(self.smask))
                     lo[di] = bvec[di]
                     hi[di] = bvec[di]
-                    print('Intermed. j,bv = {}: {}'.format(j, bvec))
-                    print('Intermed. self lo = {}'.format(self.lo))
-                    print('Intermed. self hi = {}'.format(self.hi))
                     if j == 0:
                         # surface represents lo[di]
                         sm[di] = BCTypes.down
                     else:
                         # surface represents hi[di]
                         sm[di] = BCTypes.up
-                    print('Intermed. self smask = {}'.format(self.smask))
-                    print('lo = {}'.format(lo))
-                    print('hi = {}'.format(hi))
-                    print('sm = {}'.format(sm))
                     sface = Tile(lo=lo, hi=hi, smask=sm, virtual=True)
                     print('MADE A SURFACE, HERE IS THE REPORT::::')
                     sface.print_tile_report()
                     stiles.append(sface)
-                    print('Ending j,bv = {}: {}'.format(j, bvec))
-                    print('Ending self lo = {}'.format(self.lo))
-                    print('Ending self hi = {}'.format(self.hi))
-                    print('Ending self smask = {}'.format(self.smask))
         return stiles
 
     def get_constant_dimensions(self):
@@ -529,16 +512,18 @@ class Tile(object):
             return negative
         
         # Now determine if atile and self osculate
-        for isface, sface in enumerate(self.get_surfaces(di)):
-            for iaface, aface in enumerate(atile.get_surfaces(di)):
+        self_surfaces_di = self.get_surfaces(di)
+        atile_surfaces_di = atile.get_surfaces(di)
+        for isface, sface in enumerate(self_surfaces_di):
+            for iaface, aface in enumerate(atile_surfaces_di):
                 if (sface.hi[di] == aface.hi[di] and
                     sface.lo[di] == aface.lo[di]):
                     # sface and aface osculate
                     print('identified osculation between sface {} and aface {} for di = {}'.format(isface, iaface, di))
                     # now find the intersection tile between sface and aface
                     ctile = sface.get_tile_intersection(aface)
-                    # set smask of ctile to that of aface
-                    ctile.smask = aface.smask[:]
+                    # set smask of ctile to that of sface
+                    ctile.smask = sface.smask[:]
                     print('OSCULATION INTERSECTION REPORT::::')
                     ctile.print_tile_report()
                     return (sface, ctile)
@@ -1171,7 +1156,7 @@ class Domain(object):
                 print('dimension {}'.format(di))
                 tosc = []
                 for ibtile, btile in enumerate(self.tiles + self.virtual_tiles):
-                    if not atile == btile:
+                    if not atile.colocated_with(btile):
                         print('CHECKING OSCULATION between tiles {} and {}'.format(iatile, ibtile))
                         (sface, ctile) = atile.whether_osculates_tile(btile, di)
                         if ctile and not sface.colocated_with(ctile):
