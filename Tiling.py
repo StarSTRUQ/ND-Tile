@@ -529,14 +529,18 @@ class Tile(object):
             return negative
         
         # Now determine if atile and self osculate
-        for sface in self.get_surfaces(di):
-            for aface in atile.get_surfaces(di):
-                if sface.hi[di] == aface.hi[di]:
+        for isface, sface in enumerate(self.get_surfaces(di)):
+            for iaface, aface in enumerate(atile.get_surfaces(di)):
+                if (sface.hi[di] == aface.hi[di] and
+                    sface.lo[di] == aface.lo[di]):
                     # sface and aface osculate
+                    print('identified osculation between sface {} and aface {} for di = {}'.format(isface, iaface, di))
                     # now find the intersection tile between sface and aface
                     ctile = sface.get_tile_intersection(aface)
                     # set smask of ctile to that of aface
                     ctile.smask = aface.smask[:]
+                    print('OSCULATION INTERSECTION REPORT::::')
+                    ctile.print_tile_report()
                     return (sface, ctile)
                 
         # Found nothing so atile and self don't osculate
@@ -1173,7 +1177,10 @@ class Domain(object):
                         if ctile and not sface.colocated_with(ctile):
                             print('FOUND OSCULATION between tiles {} and {}'.format(iatile, ibtile))
                             tosc.append((sface, ctile))
+                        else:
+                            print('NO OSCULATION between tiles {} and {}'.format(iatile, ibtile))
 
+                print('TOSC LENGTH: {}'.format(len(tosc)))
                 print('atile.smask: {}'.format(atile.smask))
                 for iaface, aface in enumerate(atile.get_surfaces(di)):
                     print('examining AFACE'.format(iaface))
