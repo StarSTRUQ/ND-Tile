@@ -194,6 +194,56 @@ class Tile(object):
         else:
             self.smask = smask[:]
 
+    def extend_dimension(self, di, dx, direction=BCTypes.none):
+        """
+        Extend the boundaries of this tile along dimension di by length dx.
+
+        The surface mask smask of this Tile will be checked and
+        if it is not equal to BCTypes.none to indicate this Tile is a surface
+        along dimension di, then expand the surface outwards in the 
+        direction of smask.
+
+        Otherwise, direction should be supplied as an argument. If it is
+        not, consider this an error!!
+        """
+        if (self.smask[di] == BCTypes.none and
+            direction != BCTypes.up and
+            direction != BCTypes.down):
+            print('ERROR: TILE.EXTEND_DIMENSION DOES NOT KNOW WHAT DIRECTION TO USE.')
+            exit()
+        to_update = None
+        sign_update = None
+        if direction == BCTypes.up:
+            to_update = self.hi
+            sign_update = +1
+        elif direction == BCTypes.down:
+            to_update = self.lo
+            sign_update = -1
+        elif self.smask[di] == BCTypes.up:
+            to_update = self.hi
+            sign_update = +1
+        elif self.smask[di] == BCTypes.down:
+            to_update = self.lo
+            sign_update = -1
+        to_update[di] += sign_update * dx
+
+    def get_thinnest_dimension(self):
+        """
+        Find the dimension di in which this Tile is thinnest.
+
+        Also find the thickness dx along dimension di.
+
+        Return (di, dx)
+        """
+        di_min = None
+        dx_min = None
+        for di in range(self.dm):
+            dx = self.hi[di] - self.lo[di]
+            if not di_min or dx < dx_min:
+                di_min = di
+                dx_min = dx
+        return di_min, dx_min
+
     def colocated_with(self, btile, di=-1):
         """
         Determine whether self and btile are colocated.
@@ -1121,6 +1171,37 @@ class Domain(object):
                                                          allow_bc_types=[BCTypes.tile])
                 revised_tiles = revised_tiles or revised_atile
 
+    def get_osculating_tiles(self, atile, di, get_other_sface=False, return_other_tile=False):
+        """
+        Get the tiles in Domain which osculate atile
+        along the dimension di. Return them as a list
+        tosc = [(sface, ctile), ...]
+        where sface and ctile are as in Tile.whether_osculates_tile
+
+        If get_other_sface, then sface will correspond to the 
+        surface of the Tile which osculates self.
+
+        If return_other_tile, will return the tuples [(stile, sface, ctile), ...]
+        where stile is the Tile of which sface is the surface.
+        """
+        tosc = []
+        for ibtile, btile in enumerate(self.tiles + self.virtual_tiles):
+            if not atile.colocated_with(btile):
+                print('CHECKING OSCULATION with domain tile {}'.format(ibtile))
+                if get_other_sface:
+                    (sface, ctile) = btile.whether_osculates_tile(atile, di)                    
+                else:
+                    (sface, ctile) = atile.whether_osculates_tile(btile, di)
+                if ctile and not sface.colocated_with(ctile):
+                    print('FOUND OSCULATION with domain tile {}'.format(ibtile))
+                    if return_other_tile:
+                        tosc.append((btile, sface, ctile))
+                    else:
+                        tosc.append((sface, ctile))
+                else:
+                    print('NO PROPER SUBSET OSCULATION with domain tile {}'.format(ibtile))
+        return tosc
+                
     def do_empty_tiling(self):
         """
         Creates empty virtual subtiles to cover the domain dom.
@@ -1165,17 +1246,7 @@ class Domain(object):
             # such that sface.lo != ctile.lo and sface.hi != ctile.hi
             for di in ncdim:
                 print('dimension {}'.format(di))
-                tosc = []
-                for ibtile, btile in enumerate(self.tiles + self.virtual_tiles):
-                    if not atile.colocated_with(btile):
-                        print('CHECKING OSCULATION between tiles {} and {}'.format(iatile, ibtile))
-                        (sface, ctile) = atile.whether_osculates_tile(btile, di)
-                        if ctile and not sface.colocated_with(ctile):
-                            print('FOUND OSCULATION between tiles {} and {}'.format(iatile, ibtile))
-                            tosc.append((sface, ctile))
-                        else:
-                            print('NO PROPER SUBSET OSCULATION between tiles {} and {}'.format(iatile, ibtile))
-
+                tosc = self.get_osculating_tiles(atile, di)
                 print('TOSC LENGTH: {}'.format(len(tosc)))
                 print('atile.smask: {}'.format(atile.smask))
                 for iaface, aface in enumerate(atile.get_surfaces(di)):
@@ -1275,9 +1346,120 @@ class Domain(object):
             if created_virtual_tiles:
                 break
         return created_virtual_tiles
+
+    def shrink_virtual_tiles(self):
+        """
+        Shrink a virtual tile V in the domain to zero volume by
+        rearranging neighboring tiles.
+
+        The algorithm is outlined below:
+        Pop a virtual tile V off the Domain's list of virtual_tiles.
+        Shrink virtual tile V by identifying its thinnest dimension di 
+        (of width W) and finding the tiles B of maximum volume with surfaces S 
+        which V osculates along di (B may be up or down relative to di, but not both).
+        Take the surfaces S and form a virtual tile (SW) of thickness W extending from S
+        in the direction of V. Find all tiles T, T != V, which SW overlaps.
+        Shrink all tiles T away from B in the dimension di by length W.
+        Expand tiles B into the volume of SW.
+        Remove virtual tile V from domain.
+        Return and Repeat until no virtual tiles remain.
+
+        Real tiles will have a problem if they osculate
+        the virtual tile but are thinner than the
+        virtual tile in the osculating dimension.
+        To get around that, shrink_virtual_tiles should
+        check to see if its smallest dimension 
+        is not thicker than its osculating tiles along
+        that dimension. If that's not true, 
+        then it will not be possible
+        to reduce such a virtual tile.
+
+        Reallocate points to real tiles and repeat fitting to update stats.
+        This has to be done in whatever code calls this function.
+        """
+        for ivtile, vtile in enumerate(self.virtual_tiles):
+            di, dx = vtile.get_thinnest_dimension()
+            # Find the domain tiles which osculate vtile along di
+            # This includes real and virtual tiles.
+            tosc = self.get_osculating_tiles(vtile, di, get_other_sface=True, return_other_tile=True)
+            if not tosc:
+                print('ERROR: VIRTUAL TILE {} DOES NOT OSCULATE A DOMAIN TILE ALONG DIMENSION {}'.format(ivtile, di))
+                exit()
+
+            # Check to see if the thickness of vtile along di
+            # is narrower than that of all osculating
+            # real tiles along di. This shouldn't happen
+            # for virtual tiles if they were ordered
+            # from smallest to largest by their widths along
+            # their smallest dimensions, but check anyway.
+            too_thick = False
+            for btile, sface, ctile in tosc:
+                if dx >= btile.hi[di] - btile.lo[di]:
+                    too_thick = True
+                    if btile.virtual:
+                        print('ERROR: VIRTUAL TILE {} IS THICKER ALONG DIMENSION {} THAN ANOTHER VIRTUAL TILE.'.format(ivtile, di))
+                        print('SUGGESTION: SORT THE VIRTUAL TILES FROM SMALLEST TO LARGEST BY THEIR SMALLEST DIMENSIONS FIRST.')
+                        exit()
+                    break
+            if too_thick:
+                # Continue to the next vtile
+                continue
+            
+            # Find the direction to use which allows expanding
+            # the nearby tiles of largest volume.
+            volume_up = 0.0
+            volume_down = 0.0
+            for btile, sface, ctile in tosc:
+                if sface.smask[di] == BCTypes.up:
+                    volume_up += btile.get_volume()
+                else:
+                    volume_down += btile.get_volume()
+            if volume_up > volume_down:
+                direction = BCTypes.up
+            else:
+                direction = BCTypes.down
+
+            for btile, sface, ctile in tosc:
+                if sface.smask[di] != direction:
+                    continue
+                # Extend the surface sface in the direction of vtile
+                # by the width of vtile in dimension di
+                sface.extend_dimension(di, dx)
+                # Find the tiles in the domain which sface overlaps.
+                olap_tiles = sface.overlaps_tiles(self.tiles + self.virtual_tiles)
+                for otile in olap_tiles:
+                    # Shrink otile in dimension di
+                    # in the direction opposite the extension direction
+                    print('SHRINKING TILE ALONG DIMENSION {}'.format(di))
+                    otile.extend_dimension(di, dx, direction=-direction)
+                    otile.print_tile_report()
+                # Extend btile in the extension direction
+                print('EXTENDING TILE ALONG DIMENSION {}'.format(di))
+                btile.extend_dimension(di, dx, direction=direction)
+                btile.print_tile_report()
+            # Pop vtile from self.virtual_tiles
+            self.virtual_tiles.pop(ivtile)
+            # Return to the calling code so
+            # the loop over self.virtual_tiles
+            # can be restarted to avoid indexing
+            # errors due to the pop.
+            return True # True to indicate we eliminated a vtile
+        return False # Return False if no virtual tiles could be eliminated.
+
+    def static_tile_assign_points(self):
+        """
+        Statically assign points to the tiles in the Domain
+        and update the fits on those tiles. Existing points
+        in the tiles are reset to only those points
+        assigned here.
+        """
+        for atile in self.tiles:
+            in_pts, out_pts = atile.which_points_within(self.points)
+            atile.points = in_pts[:]
+            atile.do_plane_fit()
                 
     def do_domain_tiling(self, gnr_thresh=None, tilde_resd_thresh=None,
-                         tilde_resd_factor=None):
+                         tilde_resd_factor=None, attempt_virtual_shrink=False):
         # Initialize a list of scratch points for tiling
         self.scratch_points = self.points[:]
         # Clear current tiling
@@ -1321,8 +1503,29 @@ class Domain(object):
             created_virtual_tiles = self.do_empty_tiling()
             self.plot_domain_slice(show_tile_id=False)
 
+        if attempt_virtual_shrink:
+            # Sort virtual tiles from smallest to largest measured
+            # by the width of their narrowest dimension. This will
+            # ensure that when shrinking tiles, virtual tiles will
+            # never be shrunk by a distance greater than their thickness
+            # along that dimension. There isn't a simple fix for
+            # thin real tiles, but shrink_virtual_tiles accounts for that
+            # and at least will not try to shrink them. This can
+            # result in some virtual tiles being impossible to eliminate
+            # using this algorithm.
+            self.virtual_tiles.sort(key=(lambda vtile: vtile.get_thinnest_dimension()[1]))
+
+            # Shrink virtual tiles to zero volume by shifting neighboring real tiles as possible
+            could_shrink_virtual = True
+            while could_shrink_virtual:
+                print('>>>CALLING SHRINK_VIRTUAL_TILES')
+                could_shrink_virtual = self.shrink_virtual_tiles()
+                self.plot_domain_slice(show_tile_id=True)
+
+            # Reallocate points to real tiles and repeat fitting to update stats.
+            self.static_tile_assign_points()
+        
         # Output Results
         self.plot_domain_slice()
         self.print_domain_report()
-        print('hi there')
-        
+        print('COMPLETED DOMAIN TILING!')
