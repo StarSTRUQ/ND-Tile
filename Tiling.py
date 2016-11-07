@@ -194,18 +194,28 @@ class Tile(object):
         else:
             self.smask = smask[:]
 
-    def colocated_with(self, btile):
+    def colocated_with(self, btile, di=-1):
         """
         Determine whether self and btile are colocated.
+
+        If the optional argument di is provided,
+        determines whether self and btile are colocated
+        only considering dimension di.
         """
         if not (list(self.lo) and list(self.hi) and
                 list(btile.lo) and list(btile.hi)):
             return False
         else:
-            colocated_lo = self.lo == btile.lo
-            colocated_hi = self.hi == btile.hi
-            colocated = np.all(np.logical_and(colocated_lo, colocated_hi))
-            return colocated
+            if di == -1:
+                colocated_lo = self.lo == btile.lo
+                colocated_hi = self.hi == btile.hi
+                colocated = np.all(np.logical_and(colocated_lo, colocated_hi))
+                return colocated
+            else:
+                colocated_lo = self.lo[di] == btile.lo[di]
+                colocated_hi = self.hi[di] == btile.hi[di]
+                colocated = colocated_lo and colocated_hi
+                return colocated
 
     def gen_vertices(self):
         """
@@ -418,7 +428,7 @@ class Tile(object):
 
         reftile must be a Tile object
 
-        di must be an integer in range(self.dm)
+        di must be an integer in range(self.dm).
         """
         reft_olap = True
         if (reftile.lo[di] >= self.hi[di] or
@@ -473,7 +483,7 @@ class Tile(object):
         By design, occlusion is false if the tiles
         overlap along dimension di or if they are the same tile.
         """
-        if self == atile or self.overlaps_tile_dimension(atile, di):
+        if self.colocated_with(atile) and self.overlaps_tile_dimension(atile, di):
             return False
         else:
             # self and atile can occlude along dimension di
@@ -483,7 +493,8 @@ class Tile(object):
             # on the extent of self along dimension di.
             candidate = True
             for dj in range(self.dm):
-                if dj==di:
+                if (dj==di or (self.smask[dj] != BCTypes.none and
+                               atile.smask[dj] != BCTypes.none)):
                     continue
                 if not self.overlaps_tile_dimension(atile, dj):
                     # atile doesn't overlap self along dj, dj =/= di
@@ -1163,7 +1174,7 @@ class Domain(object):
                             print('FOUND OSCULATION between tiles {} and {}'.format(iatile, ibtile))
                             tosc.append((sface, ctile))
                         else:
-                            print('NO OSCULATION between tiles {} and {}'.format(iatile, ibtile))
+                            print('NO PROPER SUBSET OSCULATION between tiles {} and {}'.format(iatile, ibtile))
 
                 print('TOSC LENGTH: {}'.format(len(tosc)))
                 print('atile.smask: {}'.format(atile.smask))
@@ -1177,7 +1188,7 @@ class Domain(object):
                     # a virtual tile can be extended from that entire surface.
                     surface_tiles = []
                     for (sface, ctile) in tosc:
-                        if aface == sface:
+                        if aface.colocated_with(sface):
                             print('appending ctile')
                             surface_tiles.append(ctile)
                     if not surface_tiles:
