@@ -204,9 +204,9 @@ class Tile(object):
         else:
             colocated_lo = self.lo == btile.lo
             colocated_hi = self.hi == btile.hi
-            colocated = colocated_lo and colocated_hi
+            colocated = np.all(np.logical_and(colocated_lo, colocated_hi))
             return colocated
-            
+
     def gen_vertices(self):
         """
         Return a generator for the vertices of this Tile.
@@ -475,30 +475,39 @@ class Tile(object):
 
         Return a list of such tiles.
         """
-        # Find the tiles which self does not overlap in dimension di
-        # but does overlap in every other dimension.
-        # These tiles set the bounds on extensions along dimension di.
-        # (If there is an additional dimension along which the tiles
-        # do not overlap, then no constraint can be made along di.)
         otiles = []
         for ktile in tiles:
-            if self == ktile or self.overlaps_tile_dimension(ktile, di):
-                # self is ktile so there's no constraint or
-                # ktile overlaps self along di,
-                # so can't constrain self along di
-                continue
-            kandidate = True
+            if self.whether_occludes_tile(ktile, di):
+                otiles.append(ktile)
+        return otiles
+
+    def whether_occludes_tile(self, atile, di):
+        """
+        Determine whether self and atile occlude along dimension di.
+
+        Return True if they occlude, False otherwise.
+
+        By design, occlusion is false if the tiles
+        overlap along dimension di or if they are the same tile.
+        """
+        if self == atile or self.overlaps_tile_dimension(atile, di):
+            return False
+        else:
+            # self and atile can occlude along dimension di
+            # if they do not overlap in dimension di
+            # but do overlap in every other dimension.
+            # Only in such a case can atile provide a constraint
+            # on the extent of self along dimension di.
+            candidate = True
             for dj in range(self.dm):
                 if dj==di:
                     continue
-                if not self.overlaps_tile_dimension(ktile, dj):
-                    # ktile doesn't overlap along dj, dj =/= di
-                    # so can't constrain di
-                    kandidate = False
+                if not self.overlaps_tile_dimension(atile, dj):
+                    # atile doesn't overlap self along dj, dj =/= di
+                    # so atile and self can't occlude along di
+                    candidate = False
                     break
-            if kandidate:
-                otiles.append(ktile)
-        return otiles
+            return candidate
 
     def whether_osculates_tile(self, atile, di):
         """
@@ -515,8 +524,8 @@ class Tile(object):
         """
         negative = (None, None)
         
-        # First determine whether atile overlaps self along di
-        if not self.overlaps_tiles([atile]):
+        # First determine whether atile occludes self along di
+        if not self.whether_occludes_tile(atile, di):
             return negative
         
         # Now determine if atile and self osculate
@@ -800,10 +809,10 @@ class Domain(object):
                 points_x.append(p.r[dimx])
                 points_y.append(p.r[dimy])
                 points_v.append(p.v)
-        divider = make_axes_locatable(ax)
-        cax = divider.append_axes('right', size='5%', pad=0.05)
-        cmap = mpl.cm.viridis
         if self.points:
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes('right', size='5%', pad=0.05)
+            cmap = mpl.cm.viridis
             point_scalar_range = np.array([p.v for p in self.points])
             bounds = np.linspace(np.amin(point_scalar_range), np.amax(point_scalar_range), num=5)
             norm = mpl.colors.Normalize(vmin=np.amin(bounds),vmax=np.amax(bounds))
@@ -1149,9 +1158,10 @@ class Domain(object):
                 tosc = []
                 for ibtile, btile in enumerate(self.tiles + self.virtual_tiles):
                     if not atile == btile:
+                        print('CHECKING OSCULATION between tiles {} and {}'.format(iatile, ibtile))
                         (sface, ctile) = atile.whether_osculates_tile(btile, di)
                         if ctile and not sface.colocated_with(ctile):
-                            print('found osculation between tiles {} and {}'.format(iatile, ibtile))
+                            print('FOUND OSCULATION between tiles {} and {}'.format(iatile, ibtile))
                             tosc.append((sface, ctile))
 
                 print('atile.smask: {}'.format(atile.smask))
@@ -1239,8 +1249,8 @@ class Domain(object):
                     # Plot/Print sdom domain report
                     print('PLOTTING DOMAIN SDOM')
                     sdom.plot_domain_slice(show_tile_id=False,
-                                           save_num='ncd-{}_iat-{}_di-{}'.format(len(ncdim),
-                                                                                 iatile, di))
+                                           save_num='ncd-{}_iat-{}_iaf-{}_di-{}'.format(len(ncdim),
+                                                                                        iatile, iaface, di))
                     print('PRINTING SDOM REPORT')
                     sdom.print_domain_report()
             # Return before continuing to the next atile
