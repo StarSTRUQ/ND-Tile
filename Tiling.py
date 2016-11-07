@@ -714,7 +714,8 @@ class Tile(object):
 
 class Domain(object):
     def __init__(self, points=[], lo=[], hi=[], dm=None,
-                 plot_lo=[], plot_hi=[], plot_dimfrac=0.9):
+                 plot_lo=[], plot_hi=[],
+                 plot_dimfrac=0.9, last_domain_slice=(None, None)):
         # The Domain is just a set of Point objects
         # and functions for tiling them into a set of Tile objects.        
         self.tiles = []         # Tiles contain points
@@ -725,6 +726,7 @@ class Domain(object):
         self.points = points
         self.scratch_points = []
         self.plot_num = 0
+        self.last_domain_slice = last_domain_slice # (fig, ax) tuple
 
         set_photogenic_lims = False
         if not list(plot_lo):
@@ -767,12 +769,16 @@ class Domain(object):
         self.plot_lo = center - 0.5 * plot_width
         self.plot_hi = center + 0.5 * plot_width
             
-    def plot_domain_slice(self, dimx=0, dimy=1, save_num=None, show_tile_id=True):
+    def plot_domain_slice(self, dimx=0, dimy=1, save_num=None, show_tile_id=True,
+                          save_last_figure=False, underlay_figure_axis=None):
         if self.dm < 2:
             return
         # Plot 2-D Slice of Domain
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
+        if underlay_figure_axis:
+            fig, ax = underlay_figure_axis
+        else:
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
         # Plot Tile outlines
         linestyle_options = ['-', '--', '-.', ':']
         ls_cycler = DMCycle(len(linestyle_options))
@@ -817,16 +823,17 @@ class Domain(object):
             bounds = np.linspace(np.amin(point_scalar_range), np.amax(point_scalar_range), num=5)
             norm = mpl.colors.Normalize(vmin=np.amin(bounds),vmax=np.amax(bounds))
             img = ax.scatter(points_x, points_y, c=points_v, cmap=cmap, norm=norm)
-            plt.colorbar(img, cmap=cmap, cax=cax, ticks=bounds, norm=norm, label='Scalar Value')
+            fig.colorbar(img, cmap=cmap, cax=cax, ticks=bounds, norm=norm, label='Scalar Value')
         # Plot points outside Tiles
         if self.scratch_points:
             for i, p in enumerate(self.scratch_points):
                 ax.scatter(p.r[dimx], p.r[dimy], color='red')
-        ax.set_xlim([self.plot_lo[dimx], self.plot_hi[dimx]])
-        ax.set_ylim([self.plot_lo[dimy], self.plot_hi[dimy]])
-        ax.set_ylabel('Dimension {}'.format(dimy))
-        ax.set_xlabel('Dimension {}'.format(dimx))
-        plt.tight_layout()
+        if not underlay_figure_axis:
+            ax.set_xlim([self.plot_lo[dimx], self.plot_hi[dimx]])
+            ax.set_ylim([self.plot_lo[dimy], self.plot_hi[dimy]])
+            ax.set_ylabel('Dimension {}'.format(dimy))
+            ax.set_xlabel('Dimension {}'.format(dimx))
+            fig.tight_layout()
         if not save_num:
             self.plot_num += 1
             this_plot_num = self.plot_num
@@ -837,9 +844,12 @@ class Domain(object):
             nstr = '{0:04d}'.format(this_plot_num)
         else:
             nstr = str(this_plot_num)
-        plt.savefig('tiled_domain_{}.eps'.format(nstr))
-        plt.savefig('tiled_domain_{}.png'.format(nstr))
-        plt.close()
+        fig.savefig('tiled_domain_{}.eps'.format(nstr))
+        fig.savefig('tiled_domain_{}.png'.format(nstr))
+        if save_last_figure:
+            self.last_domain_slice = (fig, ax)
+        elif not underlay_figure_axis:
+            plt.close(fig)
 
     def print_domain_report(self):
         # Prints full (scratch) domain data
@@ -1184,7 +1194,8 @@ class Domain(object):
 
                     # Create Domain sdom from aface
                     sdom = Domain(lo=aface.lo, hi=aface.hi,
-                                  plot_lo=self.plot_lo, plot_hi=self.plot_hi)
+                                  plot_lo=self.plot_lo, plot_hi=self.plot_hi,
+                                  last_domain_slice=self.last_domain_slice)
                     
                     if len(ncdim) == 1:
                         print('ONE DIMENSIONAL')
@@ -1250,7 +1261,8 @@ class Domain(object):
                     print('PLOTTING DOMAIN SDOM')
                     sdom.plot_domain_slice(show_tile_id=False,
                                            save_num='ncd-{}_iat-{}_iaf-{}_di-{}'.format(len(ncdim),
-                                                                                        iatile, iaface, di))
+                                                                                        iatile, iaface, di),
+                                           underlay_figure_axis=self.last_domain_slice)
                     print('PRINTING SDOM REPORT')
                     sdom.print_domain_report()
             # Return before continuing to the next atile
@@ -1297,7 +1309,7 @@ class Domain(object):
 
         # Update the boundaries of existing tiles to help eliminate empty untiled space
         self.bound_existing_tiles()
-        self.plot_domain_slice(show_tile_id=False)
+        self.plot_domain_slice(show_tile_id=False, save_last_figure=True)
 
         # Tile any remaining empty untiled space into virtual tiles
         created_virtual_tiles = True
