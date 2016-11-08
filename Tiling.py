@@ -458,13 +458,22 @@ class Tile(object):
             self.do_plane_fit()
         self.plane_fit.print_fit_report(writer)
 
-    def get_volume(self):
+    def get_volume(self, dom_lo=[], dom_hi=[]):
         """
         Computes volume of the Tile. If [lo, hi] is undefined, return None.
+        If dom_lo and dom_hi are supplied, normalize the tile dimensions
+        by the dimensions of domain lo and hi first before computing
+        a normalized volume.
         """
         if not list(self.lo) or not list(self.hi):
             return None
-        dr = np.array(self.hi) - np.array(self.lo)
+        if list(dom_lo) and list(dom_hi):
+            dom_lo = np.copy(dom_lo)
+            dom_hi = np.copy(dom_hi)
+            dom_width = dom_hi - dom_lo
+        else:
+            dom_width = np.ones(self.dm)
+        dr = (np.array(self.hi) - np.array(self.lo))/dom_width
         return np.prod(dr)
 
     def boundary_minimize(self):
@@ -752,12 +761,15 @@ class Tile(object):
             stile.extend_points(in_pts)
             return stile, in_pts, out_pts
 
-    def extend_min_volume(self, plist=[], avoid_tiles=None, decision_fun=None):
+    def extend_min_volume(self, plist=[], avoid_tiles=None, decision_fun=None, dom_lo=[], dom_hi=[]):
         """
         Given the list of points (plist), extends the Tile
         by adding one point from plist to Tile where the point 
-        is selected from plist such that it minimizes the volume
-        of Tile.
+        is selected from plist such that it minimizes the normalized volume
+        of Tile. The normalized volume is the product of tile dimensions,
+        each normalized by the extent of the domain in each dimension,
+        passed via dom_lo and dom_hi arguments. 
+        If either of those arguments are not supplied, then do not normalize the volume.
 
         Returns plist where the selected point is popped from the list.
 
@@ -769,6 +781,10 @@ class Tile(object):
         the 'decision function' to determine whether to extend the tile.
         decision_fun should take a single Tile argument and return True or False
         """
+        if list(dom_lo):
+            dom_lo = np.copy(dom_lo)
+        if list(dom_hi):
+            dom_hi = np.copy(dom_hi)
         min_vol_point_i = None
         min_vol_point = None
         min_vol = None
@@ -782,7 +798,7 @@ class Tile(object):
                                                                     greedy_absorb_points=other_points)
             if not stile:
                 continue
-            svol = stile.get_volume()
+            svol = stile.get_volume(dom_lo=dom_lo, dom_hi=dom_hi)
             dbool = True
             if callable(decision_fun):
                 dbool = decision_fun(stile)
@@ -1336,7 +1352,8 @@ class Domain(object):
         canex = True
         while len(atile.points) < self.dm+1 and canex:
             self.scratch_points, canex = atile.extend_min_volume(plist=self.scratch_points,
-                                                                 avoid_tiles=self.tiles)
+                                                                 avoid_tiles=self.tiles,
+                                                                 dom_lo=self.lo, dom_hi=self.hi)
             # self.logwriter.write('Attempted tile has {} points'.format(len(atile.points)))
         # self.logwriter.write('Obtained {} points'.format(len(atile.points)))
         
@@ -1357,7 +1374,8 @@ class Domain(object):
         while canex:
             self.scratch_points, canex = atile.extend_min_volume(plist=self.scratch_points,
                                                                  avoid_tiles=self.tiles,
-                                                                 decision_fun=decision_function)
+                                                                 decision_fun=decision_function,
+                                                                 dom_lo=self.lo, dom_hi=self.hi)
             # self.logwriter.write('Attempted tile has {} points'.format(len(atile.points)))
                         
         # set boundaries of atile and update point boundary masks
@@ -1685,9 +1703,9 @@ class Domain(object):
                 volume_down = 0.0
                 for btile, sface, ctile in tosc:
                     if sface.smask[di] == BCTypes.up:
-                        volume_up += btile.get_volume()
+                        volume_up += btile.get_volume(dom_lo=self.lo, dom_hi=self.hi)
                     else:
-                        volume_down += btile.get_volume()
+                        volume_down += btile.get_volume(dom_lo=self.lo, dom_hi=self.hi)
                 if volume_up > volume_down:
                     start_direction = BCTypes.up
                 else:
