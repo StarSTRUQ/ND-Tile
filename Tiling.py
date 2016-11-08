@@ -163,6 +163,7 @@ class Plane(object):
         # fit_guess should provide, well, a guess for the fit parameters
         # if fit_guess isn't supplied, it will be estimated from the points.
         self.cpars = None # Length n+1 for n-D space
+        self.cerrs = None # Length n+1 for n-D space, std err on cpars
         self.dm = dm
         self.resd  = None
         self.norm_resd = None
@@ -192,9 +193,9 @@ class Plane(object):
         if not writer:
             writer = self.writer
         writer.write('--- FIT COEFFICIENTS REPORT ---')
-        writer.write('--- CONSTANT: {}'.format(self.cpars[0]))
+        writer.write('--- CONSTANT: {} +/- {}'.format(self.cpars[0], self.cerrs[0]))
         for di in range(self.dm):
-            writer.write('--- DIMENSION {}: {}'.format(di, self.cpars[di+1]))
+            writer.write('--- DIMENSION {}: {} +/- {}'.format(di, self.cpars[di+1], self.cerrs[di+1]))
             
     def compute_pars(self, points, fit_guess=[]):
         if not points:
@@ -204,6 +205,7 @@ class Plane(object):
         fitter = Plane_nd(ivars, dvars, self.dm)
         popt, pcov = fitter.dolsq(fit_guess)
         self.cpars = popt
+        self.cerrs = np.sqrt(np.diag(pcov))
         dpfit = np.array([fitter.fplane(ivr, popt) for ivr in ivars])
         if not list(self.center):
             self.center = np.mean(ivars, axis=0)
