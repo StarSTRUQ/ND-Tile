@@ -1047,13 +1047,13 @@ class Domain(object):
         # If none, use the logwriter
         if not writer:
             writer = self.logwriter
-        self.writer.write('---DOMAIN REPORT---')
-        self.writer.write('DOMAIN LO = {}'.format(self.lo))
-        self.writer.write('DOMAIN HI = {}'.format(self.hi))
-        self.writer.write('-------POINTS------')
+        writer.write('---DOMAIN REPORT---')
+        writer.write('DOMAIN LO = {}'.format(self.lo))
+        writer.write('DOMAIN HI = {}'.format(self.hi))
+        writer.write('-------POINTS------')
         for p in self.scratch_points:
-            self.writer.write('{}: {}'.format(p.r, p.v))
-        self.writer.write('--------TILES------')
+            writer.write('{}: {}'.format(p.r, p.v))
+        writer.write('--------TILES------')
         for i, t in enumerate(self.tiles + self.virtual_tiles):
             t.print_tile_report(tile_number=i, writer=writer)
         
