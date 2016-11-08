@@ -174,7 +174,10 @@ class Tile(object):
         self.virtual = virtual # True if this tile represents empty space
         self.lo = np.copy(lo)
         self.hi = np.copy(hi)
+        self.smask = None
         self.dm = dm
+
+        # Try to initialize values that weren't passed to the Tile
         if not dm and list(self.lo):
             self.dm = len(self.lo)
         if points and not dm:
@@ -186,16 +189,16 @@ class Tile(object):
             self.boundary_minimize()
             print('init tile lo = {}'.format(self.lo))
             print('init tile hi = {}'.format(self.hi))
-            
-    def extend_dimension(self, di, dx, surface, direction):
-        # Surface mask smask
+
+        # Setup surface mask smask
         # smask[di] is none if the tile is thick in that dimension
         # smask[di] is down or up if the tile is a lower or upper surface of any tile
-        if not smask:
-            self.smask = [BCTypes.none for j in range(self.dm)]
-        else:
+        if type(smask) == list:
             self.smask = smask[:]
-
+        else:
+            self.smask = [BCTypes.none for j in range(self.dm)]
+            
+    def extend_dimension(self, di, dx, surface, direction):
         sfvec = None
         if surface == BCTypes.up:
             sfvec = self.hi
@@ -214,6 +217,13 @@ class Tile(object):
             exit()
         sfvec[di] += dirsign * dx
 
+    def get_dim_thickness(self, di):
+        """
+        Given the dimension di, return the thickness
+        of this tile along di.
+        """
+        return self.hi[di] - self.lo[di]
+
     def get_thinnest_dimension(self):
         """
         Find the dimension di in which this Tile is thinnest.
@@ -230,6 +240,16 @@ class Tile(object):
                 di_min = di
                 dx_min = dx
         return di_min, dx_min
+
+    def order_thinnest_dimensions(self):
+        """
+        Return the dimensions of this Tile in a list
+        ordered by the Tile thickness in each dimension
+        from smallest to largest.
+        """
+        dims = [di for di in range(self.dm)]
+        dims.sort(key=(lambda di: self.get_dim_thickness(di)))
+        return dims
 
     def colocated_with(self, btile, di=-1):
         """
@@ -264,21 +284,21 @@ class Tile(object):
         dimbcs = [[self.lo[i], self.hi[i]] for i in range(self.dm)]
         return itertools.product(*dimbcs)
 
-    def create_surface(self, di, direction):
+    def create_surface(self, di, surface):
         """
         Make and return the surface of this Tile
         defined by the constant dimension (di) where
         the surface normal of Tile along di on this 
-        surface lies in the direction (direction).
+        surface lies in the direction given by (surface)
         """
         lo = np.copy(self.lo)
         hi = np.copy(self.hi)
         sm = self.smask[:]
         bvec = None
-        if direction = BCTypes.up:
+        if surface == BCTypes.up:
             bvec = self.hi
             sm[di] = BCTypes.up
-        elif direction = BCTypes.down:
+        elif surface == BCTypes.down:
             bvec = self.lo
             sm[di] = BCTypes.down
         lo[di] = bvec[di]
@@ -314,8 +334,8 @@ class Tile(object):
         stiles = []
         for di in self.get_nonconstant_dimensions():
             if dj == -1 or di == dj:
-                for direction in [BCTypes.down, BCTypes.up]:
-                    sface = create_surface(di, direction)
+                for surface in [BCTypes.down, BCTypes.up]:
+                    sface = self.create_surface(di, surface)
                     stiles.append(sface)
         return stiles
 
@@ -551,9 +571,12 @@ class Tile(object):
                     break
             return candidate
 
-    def whether_osculates_tile(self, atile, di):
+    def whether_osculates_tile(self, atile, di, direction=BCTypes.none):
         """
         Determine whether self and atile osculate on any surface in dimension di.
+
+        If direction is supplied, then the osculation surface relative to self
+        should have the surface normal mask equal to direction.
 
         Find the surface of self which is osculated (sface)
 
@@ -576,9 +599,14 @@ class Tile(object):
         for isface, sface in enumerate(self_surfaces_di):
             for iaface, aface in enumerate(atile_surfaces_di):
                 if (sface.hi[di] == aface.hi[di] and
-                    sface.lo[di] == aface.lo[di]):
+                    sface.lo[di] == aface.lo[di] and
+                    (direction == BCTypes.none or
+                     sface.smask[di] == direction)):
                     # sface and aface osculate
-                    print('identified osculation between sface {} and aface {} for di = {}'.format(isface, iaface, di))
+                    if direction == BCTypes.none:
+                        print('identified osculation between sface {} and aface {} for di = {}'.format(isface, iaface, di))
+                    else:
+                        print('identified osculation between sface {} and aface {} along direction {} for di = {}'.format(isface, iaface, direction, di))
                     # now find the intersection tile between sface and aface
                     ctile = sface.get_tile_intersection(aface)
                     # set smask of ctile to that of sface
@@ -947,7 +975,9 @@ class Domain(object):
             # print('bedge: {}'.format(p.bedge[di]))
             # print('btype: {}'.format(p.btype[di]))
 
-    def propagate_tile_perturbation(self, from_tile, di, dx, surface, direction):
+    def propagate_tile_perturbation(self, from_tile, di, dx,
+                                    surface, direction,
+                                    ignore_tiles=[], dry_run=False):
         """
         Extend the boundaries of from_tile along dimension di by length dx.
 
@@ -966,26 +996,98 @@ class Domain(object):
         Surface and Direction should be either BCTypes.up or BCTypes.down
         to indicate whether lo or hi is to be shifted and in what direction.
 
-        Otherwise, direction should be supplied as an argument. If it is
-        not, consider this an error!!
+        If ignore_tiles, then ignore propagating the perturbation to
+        the tiles in ignore_tiles. This is an aid for recursively propagating
+        throughout the domain.
+
+        If dry_run == True, then do not actually perform any propagation
+        but do check the domain tiles recursively to see if the propagation
+        is allowed.
+
+        Returns False if the perturbation could not be applied to from_tile,
+        returns True otherwise.
         """
+        # First just check whether from_tile is thicker than dx if
+        # we are asked to shrink from_tile. Return False otherwise.
+        if surface == -direction and from_tile.get_dim_thickness(di) <= dx:
+            return False
+        
+        # Otherwise ...
         # Extend the surface of from_tile in the direction (direction)
         # from its up or down (surface) in dimension di
         # by the width dx.
-        sface = create_surface(di, direction)
+        sface = from_tile.create_surface(di, surface)
+        
+        # Find the tiles in the domain which sface osculates along di in direction
+        osct_tiles = self.get_osculating_tiles(sface, di, direction=direction,
+                                               get_other_sface=True, return_other_tile=True)
+        
+        # Extend sface to get overlaps
         sface.extend_dimension(di, dx, direction, direction)
         # Find the tiles in the domain which sface overlaps.
         olap_tiles = sface.overlaps_tiles(self.tiles + self.virtual_tiles)
-        for otile in olap_tiles:
-            # Shrink otile in dimension di
-            # in the direction opposite the extension direction
+
+        # Find the tiles in the domain which the sface osculated but does not
+        # intersect now that it has been extended. These are the newly un-osculated tiles.
+        unosct_tiles = []
+        for otile in osct_tiles:
+            if not otile in olap_tiles:
+                unosct_tiles.append(otile)
+
+        # Create next ignore_tiles by including form_tile
+        ignore_tiles_next = ignore_tiles[:]
+        ignore_tiles_next.append(from_tile)
+
+        # Check or do propagation to newly overlapped or unosculated tiles given dry_run
+        for otile in olap_tiles + unosct_tiles:
+            colocated_ignore = any([otile.colocated_with(igt) for igt in ignore_tiles_next])
+            if not colocated_ignore:
+                # Perturb otile in dimension di
+                # in the same direction as the extension direction
+                # from the oppositely oriented surface
+                could_otile_prop = self.propagate_tile_perturbation(otile, di, dx,
+                                                                    -surface, direction,
+                                                                    ignore_tiles=ignore_tiles_next,
+                                                                    dry_run=dry_run)
+                if not could_otile_prop:
+                    print('COULD NOT SHRINK TILE ALONG DIMENSION {}'.format(di))
+                    print('--- OBSTRUCTING TILE ---')
+                    otile.print_tile_report()
+                    return could_otile_prop
+        # We didn't return with False in the otile loop so the propagation must have succeeded.
+        # Perturb the dimension di of form_tile accordingly if this wasn't a dry run.
+        if not dry_run:
             print('SHRINKING TILE ALONG DIMENSION {}'.format(di))
-            otile.extend_dimension(di, dx, -direction, direction)
-            otile.print_tile_report()
-        # Extend btile in the extension direction
-        print('EXTENDING TILE ALONG DIMENSION {}'.format(di))
-        btile.extend_dimension(di, dx, direction, direction)
-        btile.print_tile_report()
+            from_tile.extend_dimension(di, dx, surface, direction)
+            from_tile.print_tile_report()
+        else:
+            print('COULD SHRINK TILE ALONG DIMENSION {} BUT THIS WAS A DRY RUN SO I DIDN\'T'.format(di))            
+        return True
+
+    def multi_propagate_tile_perturbation(self, tosc, di, dx,
+                                          surface, direction,
+                                          ignore_tiles=[], dry_run=False):
+        """
+        Wrapper for propagate_tile_perturbation that takes a list tosc
+        of (btile, sface, ctile) where btile is to be perturbed and
+        propagated in direction if sface's surface mask matches surface.
+
+        tosc contents are as returned by self.get_osculating_tiles.
+
+        Returns True if the propagation succeeded, False otherwise.
+
+        Only actually applies the propagation if dry_run == False.
+        """
+        can_propagate_direction = True
+        this_ignore_tiles = ignore_tiles[:]
+        for btile, sface, ctile in tosc:
+            if sface.smask[di] != surface:
+                continue
+            can_propagate = self.propagate_tile_perturbation(btile, di, dx, surface, direction,
+                                                             ignore_tiles=this_ignore_tiles, dry_run=dry_run)
+            this_ignore_tiles.append(btile)
+            can_propagate_direction = can_propagate_direction and can_propagate
+        return can_propagate_direction
             
     def get_tile_boundaries(self, atile, di, allow_bc_types=[BCTypes.all_types]):
         """
@@ -1209,12 +1311,20 @@ class Domain(object):
                                                          allow_bc_types=[BCTypes.tile])
                 revised_tiles = revised_tiles or revised_atile
 
-    def get_osculating_tiles(self, atile, di, get_other_sface=False, return_other_tile=False):
+    def get_osculating_tiles(self, atile, di, direction=BCTypes.none,
+                             get_other_sface=False, return_other_tile=False):
         """
         Get the tiles in Domain which osculate atile
         along the dimension di. Return them as a list
         tosc = [(sface, ctile), ...]
         where sface and ctile are as in Tile.whether_osculates_tile
+
+        If direction == BCTypes.up or direction == BCTypes.down
+        then only return the tiles which osculate atile such that the
+        osculating surface of atile has a surface normal oriented along direction.
+        Otherwise, if direction == BCTypes.none, return tiles which osculate
+        atile in any direction along di. Note that this direction 
+        should be relative to atile regardless the value of get_other_sface.
 
         If get_other_sface, then sface will correspond to the 
         surface of the Tile which osculates self.
@@ -1222,16 +1332,22 @@ class Domain(object):
         If return_other_tile, will return the tuples [(stile, sface, ctile), ...]
         where stile is the Tile of which sface is the surface.
         """
+        if direction != BCTypes.none and get_other_sface:
+            rel_direction = -direction
+        else:
+            rel_direction = direction
         tosc = []
         for ibtile, btile in enumerate(self.tiles + self.virtual_tiles):
             if not atile.colocated_with(btile):
                 print('CHECKING OSCULATION with domain tile {}'.format(ibtile))
                 if get_other_sface:
-                    (sface, ctile) = btile.whether_osculates_tile(atile, di)                    
+                    (sface, ctile) = btile.whether_osculates_tile(atile, di,
+                                                                  direction=rel_direction)
                 else:
-                    (sface, ctile) = atile.whether_osculates_tile(btile, di)
+                    (sface, ctile) = atile.whether_osculates_tile(btile, di,
+                                                                  direction=rel_direction)
                 if ctile and not sface.colocated_with(ctile):
-                    print('FOUND OSCULATION with domain tile {}'.format(ibtile))
+                    print('FOUND OSCULATION along direction {}, dimension {} with domain tile {}'.format(direction,di,ibtile))
                     if return_other_tile:
                         tosc.append((btile, sface, ctile))
                     else:
@@ -1402,7 +1518,7 @@ class Domain(object):
         Remove virtual tile V from domain.
         Return and Repeat until no virtual tiles remain.
 
-        Real tiles will have a problem if they osculate
+        Real or virtual tiles will have a problem if they osculate
         the virtual tile but are thinner than the
         virtual tile in the osculating dimension.
         To get around that, shrink_virtual_tiles should
@@ -1416,63 +1532,97 @@ class Domain(object):
         This has to be done in whatever code calls this function.
         """
         for ivtile, vtile in enumerate(self.virtual_tiles):
-            di, dx = vtile.get_thinnest_dimension()
-            # Find the domain tiles which osculate vtile along di
-            # This includes real and virtual tiles.
-            tosc = self.get_osculating_tiles(vtile, di, get_other_sface=True, return_other_tile=True)
-            if not tosc:
-                print('ERROR: VIRTUAL TILE {} DOES NOT OSCULATE A DOMAIN TILE ALONG DIMENSION {}'.format(ivtile, di))
-                exit()
-
-            # Check to see if the thickness of vtile along di
-            # is narrower than that of all osculating
-            # real tiles along di. This shouldn't happen
-            # for virtual tiles if they were ordered
-            # from smallest to largest by their widths along
-            # their smallest dimensions, but check anyway.
-            too_thick = False
-            for btile, sface, ctile in tosc:
-                if dx >= btile.hi[di] - btile.lo[di]:
-                    too_thick = True
-                    if btile.virtual:
-                        print('ERROR: VIRTUAL TILE {} IS THICKER ALONG DIMENSION {} THAN ANOTHER VIRTUAL TILE.'.format(ivtile, di))
-                        print('SUGGESTION: SORT THE VIRTUAL TILES FROM SMALLEST TO LARGEST BY THEIR SMALLEST DIMENSIONS FIRST.')
-                        exit()
-                    break
-            if too_thick:
-                # Continue to the next vtile
-                continue
-            
-            # Find the direction to use which allows expanding
-            # the nearby tiles of largest volume.
-            volume_up = 0.0
-            volume_down = 0.0
-            for btile, sface, ctile in tosc:
-                if sface.smask[di] == BCTypes.up:
-                    volume_up += btile.get_volume()
+            # Find the list of dimensions of vtile ordered
+            # from thinnest to thickest.
+            print('EXAMINING VTILE {} FOR SHRINKING'.format(ivtile))
+            for di in vtile.order_thinnest_dimensions():
+                print('EXAMINING DIMENSION {}'.format(di))
+                dx = vtile.get_dim_thickness(di)
+                # Find the domain tiles which osculate vtile along di
+                # This includes real and virtual tiles.
+                tosc = self.get_osculating_tiles(vtile, di, get_other_sface=True, return_other_tile=True)
+                if not tosc:
+                    print('ERROR: VIRTUAL TILE {} DOES NOT OSCULATE A DOMAIN TILE ALONG DIMENSION {}'.format(ivtile, di))
+                    exit()
                 else:
-                    volume_down += btile.get_volume()
-            if volume_up > volume_down:
-                direction = BCTypes.up
-            else:
-                direction = BCTypes.down
+                    print('--- VTILE OSCULATES THE FOLLOWING DOMAIN TILES: ---')
+                    for btile, sface, ctile in tosc:
+                        btile.print_tile_report()
 
-            can_propagate = False
-            for btile, sface, ctile in tosc:
-                if sface.smask[di] != direction:
+                # Check to see if the thickness of vtile along di
+                # is narrower than that of all osculating
+                # tiles along di.
+                too_thick = False
+                for btile, sface, ctile in tosc:
+                    if dx >= btile.hi[di] - btile.lo[di]:
+                        too_thick = True
+                        break
+                if too_thick:
+                    # Continue to the next dimension
                     continue
-                can_propagate = self.propagate_tile_perturbation(btile, di, dx, direction, direction)
-                if not can_propagate:
-                    break
-            if can_propagate:
-                # Pop vtile from self.virtual_tiles
-                self.virtual_tiles.pop(ivtile)
-                # Return to the calling code so
-                # the loop over self.virtual_tiles
-                # can be restarted to avoid indexing
-                # errors due to the pop.
-                return True # True to indicate we eliminated a vtile
+
+                # Find the direction in which to collapse vtile 
+                # which allows expanding the nearby tiles of largest volume
+                volume_up = 0.0
+                volume_down = 0.0
+                for btile, sface, ctile in tosc:
+                    if sface.smask[di] == BCTypes.up:
+                        volume_up += btile.get_volume()
+                    else:
+                        volume_down += btile.get_volume()
+                if volume_up > volume_down:
+                    start_direction = BCTypes.up
+                else:
+                    start_direction = BCTypes.down
+
+                could_propagate = True
+                for direction in [start_direction, -start_direction]:
+                    print('CHECKING DIRECTION {}'.format(direction))
+                    could_propagate = True
+                    can_propagate_direction = self.multi_propagate_tile_perturbation(tosc, di, dx,
+                                                                                     direction, direction,
+                                                                                     ignore_tiles=[vtile],
+                                                                                     dry_run=True)
+                    could_propagate = could_propagate and can_propagate_direction
+                    if can_propagate_direction:
+                        print('CAN PROPAGATE VTILE SHRINK FOR VTILE {}, DIMENSION {}, DIRECTION {}'.format(ivtile, di, direction))
+                        could_propagate = self.multi_propagate_tile_perturbation(tosc, di, dx,
+                                                                                 direction, direction,
+                                                                                 ignore_tiles=[vtile],
+                                                                                 dry_run=False)
+                        break
+                    else:
+                        print('CANNOT PROPAGATE VTILE SHRINK FOR VTILE {}, DIMENSION {}, DIRECTION {}'.format(ivtile, di, direction))
+                        continue
+                    
+                # Determine if I did a propagation above and pop vtile and return if so.
+                if could_propagate:
+                    # Pop vtile from self.virtual_tiles
+                    self.virtual_tiles.pop(ivtile)
+                    # Return to the calling code so
+                    # the loop over self.virtual_tiles
+                    # can be restarted to avoid indexing
+                    # errors due to the pop.
+                    return True # True to indicate we eliminated a vtile
         return False # Return False if no virtual tiles could be eliminated.
+
+    def create_virtual_tiles(self, make_plots=False):
+        """
+        Tile all untiled space in the domain into virtual tiles
+        and add them to self.virtual_tiles.
+
+        Returns True if a new virtual tile was created. 
+        Returns False otherwise.
+        """
+        created_new_virtual = False
+        created_virtual_tiles = True
+        while created_virtual_tiles:
+            print('>>>CALLING DO_EMPTY_TILING')
+            created_virtual_tiles = self.do_empty_tiling()
+            created_new_virtual = created_new_virtual or created_virtual_tiles
+            if make_plots:
+                self.plot_domain_slice(show_tile_id=False)
+        return created_new_virtual
 
     def static_tile_assign_points(self):
         """
@@ -1523,26 +1673,11 @@ class Domain(object):
         # Update the boundaries of existing tiles to help eliminate empty untiled space
         self.bound_existing_tiles()
         self.plot_domain_slice(show_tile_id=False, save_last_figure=True)
-
+                    
         # Tile any remaining empty untiled space into virtual tiles
-        created_virtual_tiles = True
-        while created_virtual_tiles:
-            print('>>>CALLING DO_EMPTY_TILING')
-            created_virtual_tiles = self.do_empty_tiling()
-            self.plot_domain_slice(show_tile_id=False)
-
+        created_virtual_tiles = self.create_virtual_tiles(make_plots=True)
+        
         if attempt_virtual_shrink:
-            # Sort virtual tiles from smallest to largest measured
-            # by the width of their narrowest dimension. This will
-            # ensure that when shrinking tiles, virtual tiles will
-            # never be shrunk by a distance greater than their thickness
-            # along that dimension. There isn't a simple fix for
-            # thin real tiles, but shrink_virtual_tiles accounts for that
-            # and at least will not try to shrink them. This can
-            # result in some virtual tiles being impossible to eliminate
-            # using this algorithm.
-            self.virtual_tiles.sort(key=(lambda vtile: vtile.get_thinnest_dimension()[1]))
-
             # Shrink virtual tiles to zero volume by shifting neighboring real tiles as possible
             could_shrink_virtual = True
             while could_shrink_virtual:
@@ -1552,6 +1687,13 @@ class Domain(object):
 
             # Reallocate points to real tiles and repeat fitting to update stats.
             self.static_tile_assign_points()
+
+            # See if there exists any new empty untiled space that should be a virtual tile
+            # that isn't already in self.virtual_tiles. Complain if there is, that's a bug.
+            created_virtual_tiles = self.create_virtual_tiles(make_plots=True)
+            if created_virtual_tiles:
+                print('ERROR: VIRTUAL TILE CREATED AFTER SHRINK_VIRTUAL_TILES!!!')
+                exit()
         
         # Output Results
         self.plot_domain_slice()
