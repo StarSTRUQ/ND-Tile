@@ -76,7 +76,7 @@ class Plane_nd(object):
     def dolsq(self, guess=[], do_print=False):
         if list(guess):
             # If guess is provided, it should provide a vector for the initial values xini
-            xini = np.array(guess)
+            xini = np.copy(guess)
         else:
             xini = np.zeros(self.npars)
             xini[0] = np.average(self.dvals)
