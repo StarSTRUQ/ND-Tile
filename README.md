@@ -24,8 +24,4 @@ To import Tiling, just add the ND-Tile directory to your PYTHONPATH environment 
 
 * Domain slicing should plot all possible 2-D slices by default.
 
-* Improve detection, mitigation, and reporting of untiled, empty regions in domain.
-
-- post-tiling tile-only bc update
-
-- recursive dimensionality reduction for tile surfaces to add virtual tiles
+* Virtual tile shrinking should not shrink a real tile such that it has fewer than N+1 points.
