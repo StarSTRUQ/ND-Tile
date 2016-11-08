@@ -1055,6 +1055,16 @@ class Domain(object):
                     otile.print_tile_report()
                     return could_otile_prop
         # We didn't return with False in the otile loop so the propagation must have succeeded.
+        
+        # Did we shrink a real from_tile?
+        if (not from_tile.virtual) and surface == -direction:
+            # Check to make sure that if from_tile shrank, then it still contains
+            # the minimum number of points required to constrain a N-D plane fit.
+            inpts, outpts = from_tile.which_points_within(self.points)
+            if len(inpts) <= self.dm:
+                print('SHRINKING TILE ALONG DIMENSION {} NOT POSSIBLE. TILE WOULD NOT CONTAIN AT LEAST {} POINTS'.format(di, self.dm+1))
+                return False
+            
         # Perturb the dimension di of form_tile accordingly if this wasn't a dry run.
         if not dry_run:
             print('SHRINKING TILE ALONG DIMENSION {}'.format(di))
