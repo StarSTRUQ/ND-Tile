@@ -40,12 +40,14 @@ from Plane_nd import Plane_nd
 class OutputWriter(object):
     # Provides a convenience function which can either write to stdout
     # or open and write a file.
-    def __init__(self, otype=None):
+    def __init__(self, otype=None, null=False):
         """
         If otype==None, then OutputWriter will print to stdout.
         Otherwise, open a file named otype for writing.
+        If null, write immediately returns and does nothing.
         """
         self.ofile = None
+        self.null = null
         if otype:
             self.ofile = open(otype, 'w')
             
@@ -63,6 +65,8 @@ class OutputWriter(object):
         
         When writing content to a file, append a newline.
         """
+        if self.null:
+            return
         if self.ofile:
             self.ofile.write(content + '\n')
         else:
@@ -883,7 +887,7 @@ class Domain(object):
         if logfile:
             self.logwriter = OutputWriter(logfile)
         else:
-            self.logwriter = (lambda x: None)
+            self.logwriter = OutputWriter(null=True)
         if summaryfile:
             self.sumwriter = OutputWriter(summaryfile)
         else:
