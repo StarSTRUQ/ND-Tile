@@ -456,7 +456,7 @@ class Tile(object):
         """Prints report of the fit on this Tile to the writer. If writer==None, use self.writer."""
         if not writer:
             writer = self.writer
-        if (not self.fresh_plane_fit) and len(self.points) > self.dm:
+        if not self.fresh_plane_fit:
             self.do_plane_fit()
         self.plane_fit.print_fit_report(writer)
 
@@ -864,6 +864,9 @@ class Tile(object):
         return stile
 
     def do_plane_fit(self):
+        if not len(self.points) > self.dm:
+            # Don't attempt a fit if there are too few points
+            return
         if self.plane_fit:
             self.previous_tilde_resd = self.plane_fit.tilde_resd
         p = Plane(points=self.points, fit_guess=self.fit_guess,
