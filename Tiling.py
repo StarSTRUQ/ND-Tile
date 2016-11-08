@@ -155,7 +155,7 @@ class Point(object):
         return ave_dist_nn
 
 class Plane(object):
-    def __init__(self, points=None, fit_guess=None, dm=None, lo=[], hi=[], writer=None):
+    def __init__(self, points=None, fit_guess=[], dm=None, lo=[], hi=[], writer=None):
         # fit_guess should provide, well, a guess for the fit parameters
         # if fit_guess isn't supplied, it will be estimated from the points.
         self.cpars = None # Length n+1 for n-D space
@@ -192,7 +192,7 @@ class Plane(object):
         for di in range(self.dm):
             writer.write('--- DIMENSION {}: {}'.format(di, self.cpars[di+1]))
             
-    def compute_pars(self, points, fit_guess):
+    def compute_pars(self, points, fit_guess=[]):
         if not points:
             return
         ivars = np.array([p.r for p in points])
@@ -216,7 +216,7 @@ class Plane(object):
         self.geom_norm_resd = np.sqrt(np.sum(self.norm_resd**2))
         
 class Tile(object):
-    def __init__(self, points=[], lo=[], hi=[], fit_guess=None, dm=None, smask=None,
+    def __init__(self, points=[], lo=[], hi=[], fit_guess=[], dm=None, smask=None,
                  virtual=False, writer=None):
         self.points = points
         self.fit_guess = fit_guess
@@ -847,7 +847,7 @@ class Tile(object):
         p = Plane(points=self.points, fit_guess=self.fit_guess,
                   dm=self.dm, lo=self.lo, hi=self.hi, writer=self.writer)
         self.plane_fit = p
-        self.fit_guess = p.cpars
+        self.fit_guess = np.copy(p.cpars)
         self.fresh_plane_fit = True
 
     def get_geom_norm_resd(self):
