@@ -1055,15 +1055,21 @@ class Domain(object):
                     otile.print_tile_report()
                     return could_otile_prop
         # We didn't return with False in the otile loop so the propagation must have succeeded.
-        
+
         # Did we shrink a real from_tile?
         if (not from_tile.virtual) and surface == -direction:
-            # Check to make sure that if from_tile shrank, then it still contains
+            # Experimentally shrink a virtual tile of the same size as from_tile.
+            # Check to make sure it still contains enough points.
+            scratch_from_tile = Tile(lo=from_tile.lo, hi=from_tile.hi, virtual=True)
+            scratch_from_tile.extend_dimension(di, dx, surface, direction)
+            # Check to make sure that if from_tile were to shrink, then it will still contain
             # the minimum number of points required to constrain a N-D plane fit.
-            inpts, outpts = from_tile.which_points_within(self.points)
+            inpts, outpts = scratch_from_tile.which_points_within(self.points)
             if len(inpts) <= self.dm:
                 print('SHRINKING TILE ALONG DIMENSION {} NOT POSSIBLE. TILE WOULD NOT CONTAIN AT LEAST {} POINTS'.format(di, self.dm+1))
                 return False
+            else:
+                print('VERIFIED THAT A SHRUNK TILE ALONG DIMENSION {} WOULD STILL ENCLOSE AT LEAST {} POINTS.'.format(di, self.dm+1))
             
         # Perturb the dimension di of form_tile accordingly if this wasn't a dry run.
         if not dry_run:
