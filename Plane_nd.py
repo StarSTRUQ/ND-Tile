@@ -73,7 +73,7 @@ class Plane_nd(object):
         fvals = np.array([dv - self.fplane(iv,pars) for dv, iv in zip(self.dvals, self.ivals)])
         return fvals
 
-    def dolsq(self, guess=None, do_print=False):
+    def dolsq(self, guess=[], do_print=False):
         if list(guess):
             # If guess is provided, it should provide a vector for the initial values xini
             xini = np.array(guess)
