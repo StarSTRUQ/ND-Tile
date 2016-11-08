@@ -883,7 +883,7 @@ class Domain(object):
         if logfile:
             self.logwriter = OutputWriter(logfile)
         else:
-            self.logwriter = (lambda x: return)
+            self.logwriter = (lambda x: None)
         if summaryfile:
             self.sumwriter = OutputWriter(summaryfile)
         else:
@@ -1035,7 +1035,7 @@ class Domain(object):
             self.writer.write('{}: {}'.format(p.r, p.v))
         self.writer.write('--------TILES------')
         for i, t in enumerate(self.tiles + self.virtual_tiles):
-            t.print_tile_report(tile_number=i, writer)
+            t.print_tile_report(tile_number=i, writer=writer)
         
     def bc_init_mask_points(self, plist):
         # Set initial boundary masks for list of points plist given domain boundaries
