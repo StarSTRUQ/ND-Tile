@@ -37,6 +37,37 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.patches import Rectangle
 from Plane_nd import Plane_nd
 
+class OutputWriter(object):
+    # Provides a convenience function which can either write to stdout
+    # or open and write a file.
+    def __init__(self, otype=None):
+        """
+        If otype==None, then OutputWriter will print to stdout.
+        Otherwise, open a file named otype for writing.
+        """
+        self.ofile = None
+        if otype:
+            self.ofile = open(otype, 'w')
+            
+    def close(self):
+        """
+        If OutputWriter has a file open, then close it.
+        """
+        if self.ofile:
+            self.ofile.close()
+            
+    def write(self, content):
+        """
+        Print content to stdout if no file object is available in ofile.
+        If there is a file object in ofile, then write content to the file.
+        
+        When writing content to a file, append a newline.
+        """
+        if self.ofile:
+            self.ofile.write(content + '\n')
+        else:
+            print(content)
+
 class BCTypes(object):
     # Boundary Types
     up    = +1
@@ -124,7 +155,7 @@ class Point(object):
         return ave_dist_nn
 
 class Plane(object):
-    def __init__(self, points=None, fit_guess=None, dm=None, lo=[], hi=[]):
+    def __init__(self, points=None, fit_guess=None, dm=None, lo=[], hi=[], writer=None):
         # fit_guess should provide, well, a guess for the fit parameters
         # if fit_guess isn't supplied, it will be estimated from the points.
         self.cpars = None # Length n+1 for n-D space
@@ -141,7 +172,26 @@ class Plane(object):
             self.center = 0.5*(self.lo + self.hi)
             self.width = self.hi - self.lo
         self.compute_pars(points, fit_guess)
-        
+        if writer:
+            self.writer = writer
+        else:
+            self.writer = OutputWriter()
+
+    def close(self):
+        """
+        Manually cleanup. Used for closing open file handles.
+        """
+        self.writer.close()
+
+    def print_fit_report(self, writer=None):
+        """Prints report of the fit to the writer. If writer==None, use self.writer."""
+        if not writer:
+            writer = self.writer
+        writer.write('--- FIT COEFFICIENTS REPORT ---')
+        writer.write('--- CONSTANT: {}'.format(self.cpars[0]))
+        for di in range(self.dm):
+            writer.write('--- DIMENSION {}: {}'.format(di, self.cpars[di+1]))
+            
     def compute_pars(self, points, fit_guess):
         if not points:
             return
@@ -149,6 +199,7 @@ class Plane(object):
         dvars = np.array([p.v for p in points])
         fitter = Plane_nd(ivars, dvars, self.dm)
         popt, pcov = fitter.dolsq(fit_guess)
+        self.cpars = popt
         dpfit = np.array([fitter.fplane(ivr, popt) for ivr in ivars])
         if not list(self.center):
             self.center = np.mean(ivars, axis=0)
@@ -165,7 +216,8 @@ class Plane(object):
         self.geom_norm_resd = np.sqrt(np.sum(self.norm_resd**2))
         
 class Tile(object):
-    def __init__(self, points=[], lo=[], hi=[], fit_guess=None, dm=None, smask=None, virtual=False):
+    def __init__(self, points=[], lo=[], hi=[], fit_guess=None, dm=None, smask=None,
+                 virtual=False, writer=None):
         self.points = points
         self.fit_guess = fit_guess
         self.plane_fit = None
@@ -176,6 +228,10 @@ class Tile(object):
         self.hi = np.copy(hi)
         self.smask = None
         self.dm = dm
+        if writer:
+            self.writer = writer
+        else:
+            self.writer = OutputWriter()
 
         # Try to initialize values that weren't passed to the Tile
         if not dm and list(self.lo):
@@ -183,12 +239,12 @@ class Tile(object):
         if points and not dm:
             self.dm = points[0].dm
         if points and (not list(self.lo) or not list(self.hi)):
-            print('init tile lo = {}'.format(self.lo))
-            print('init tile hi = {}'.format(self.hi))
-            print('Making tile, calling boundary_minimize')
+            self.writer.write('init tile lo = {}'.format(self.lo))
+            self.writer.write('init tile hi = {}'.format(self.hi))
+            self.writer.write('Making tile, calling boundary_minimize')
             self.boundary_minimize()
-            print('init tile lo = {}'.format(self.lo))
-            print('init tile hi = {}'.format(self.hi))
+            self.writer.write('init tile lo = {}'.format(self.lo))
+            self.writer.write('init tile hi = {}'.format(self.hi))
 
         # Setup surface mask smask
         # smask[di] is none if the tile is thick in that dimension
@@ -197,6 +253,15 @@ class Tile(object):
             self.smask = smask[:]
         else:
             self.smask = [BCTypes.none for j in range(self.dm)]
+
+    def close(self):
+        """
+        Manually cleanup. Used for closing open file handles.
+        """
+        self.writer.close()
+        # Close Fit object
+        if self.plane_fit:
+            self.plane_fit.close()
             
     def extend_dimension(self, di, dx, surface, direction):
         sfvec = None
@@ -205,7 +270,7 @@ class Tile(object):
         elif surface == BCTypes.down:
             sfvec = self.lo
         else:
-            print('ERROR: SURFACE NOT DEFINED!')
+            self.writer.write('ERROR: SURFACE NOT DEFINED!')
             exit()
         dirsign = None
         if direction == BCTypes.up:
@@ -213,7 +278,7 @@ class Tile(object):
         elif direction == BCTypes.down:
             dirsign = -1
         else:
-            print('ERROR: DIRECTION NOT DEFINED!')
+            self.writer.write('ERROR: DIRECTION NOT DEFINED!')
             exit()
         sfvec[di] += dirsign * dx
 
@@ -303,8 +368,8 @@ class Tile(object):
             sm[di] = BCTypes.down
         lo[di] = bvec[di]
         hi[di] = bvec[di]
-        sface = Tile(lo=lo, hi=hi, smask=sm, virtual=True)
-        print('MADE A SURFACE, HERE IS THE REPORT::::')
+        sface = Tile(lo=lo, hi=hi, smask=sm, virtual=True, writer=self.writer)
+        self.writer.write('MADE A SURFACE, HERE IS THE REPORT::::')
         sface.print_tile_report()
         return sface
     
@@ -330,7 +395,7 @@ class Tile(object):
         If dj is provided and it is not a nonconstant dimension,
         then return an empty list.
         """
-        print('GENERATING SURFACES FOR TILE ALONG DIM {}'.format(dj))
+        self.writer.write('GENERATING SURFACES FOR TILE ALONG DIM {}'.format(dj))
         stiles = []
         for di in self.get_nonconstant_dimensions():
             if dj == -1 or di == dj:
@@ -363,20 +428,31 @@ class Tile(object):
                 non_constant_dimensions.append(di)
         return non_constant_dimensions
 
-    def print_tile_report(self, tile_number=None):
-        """Prints report of this Tile"""
-        print('--- TILE {} REPORT ---'.format(tile_number))
-        print('--- VIRTUAL TILE = {} ---'.format(self.virtual))
-        print('--- LO = {} ---'.format(self.lo))
-        print('--- HI = {} ---'.format(self.hi))
-        print('--- SURFACE MASK = {} ---'.format(self.smask))
+    def print_tile_report(self, tile_number=None, writer=None):
+        """Prints report of this Tile to the writer. If writer==None, use self.writer."""
+        if not writer:
+            writer = self.writer
+        writer.write('--- TILE {} REPORT ---'.format(tile_number))
+        writer.write('--- VIRTUAL TILE = {} ---'.format(self.virtual))
+        writer.write('--- LO = {} ---'.format(self.lo))
+        writer.write('--- HI = {} ---'.format(self.hi))
+        writer.write('--- SURFACE MASK = {} ---'.format(self.smask))
         if not self.virtual:
-            print('--- NPTS = {} ---'.format(len(self.points)))
-            print('--- GEOM. MEAN NORM RESD. = {} ---'.format(self.get_geom_norm_resd()))
-            print('--- TILDE RESD. = {} ---'.format(self.get_tilde_resd()))
-            print('------- POINTS ------')
+            writer.write('--- NPTS = {} ---'.format(len(self.points)))
+            writer.write('--- GEOM. MEAN NORM RESD. = {} ---'.format(self.get_geom_norm_resd()))
+            writer.write('--- TILDE RESD. = {} ---'.format(self.get_tilde_resd()))
+            self.print_fit_report(writer)
+            writer.write('------- POINTS ------')
             for p in self.points:
-                print('{}: {}'.format(p.r, p.v))
+                writer.write('{}: {}'.format(p.r, p.v))
+
+    def print_fit_report(self, writer=None):
+        """Prints report of the fit on this Tile to the writer. If writer==None, use self.writer."""
+        if not writer:
+            writer = self.writer
+        if not self.fresh_plane_fit:
+            self.do_plane_fit()
+        self.plane_fit.print_fit_report(writer)
 
     def get_volume(self):
         """
@@ -604,14 +680,14 @@ class Tile(object):
                      sface.smask[di] == direction)):
                     # sface and aface osculate
                     if direction == BCTypes.none:
-                        print('identified osculation between sface {} and aface {} for di = {}'.format(isface, iaface, di))
+                        self.writer.write('identified osculation between sface {} and aface {} for di = {}'.format(isface, iaface, di))
                     else:
-                        print('identified osculation between sface {} and aface {} along direction {} for di = {}'.format(isface, iaface, direction, di))
+                        self.writer.write('identified osculation between sface {} and aface {} along direction {} for di = {}'.format(isface, iaface, direction, di))
                     # now find the intersection tile between sface and aface
                     ctile = sface.get_tile_intersection(aface)
                     # set smask of ctile to that of sface
                     ctile.smask = sface.smask[:]
-                    print('OSCULATION INTERSECTION REPORT::::')
+                    self.writer.write('OSCULATION INTERSECTION REPORT::::')
                     ctile.print_tile_report()
                     return (sface, ctile)
                 
@@ -624,7 +700,7 @@ class Tile(object):
         """
         lo = np.maximum(self.lo, atile.lo)
         hi = np.minimum(self.hi, atile.hi)
-        return Tile(lo=lo, hi=hi, virtual=True)
+        return Tile(lo=lo, hi=hi, virtual=True, writer=self.writer)
 
     def get_tile_constraints(self, tiles, di, bcdi=None):
         """
@@ -663,7 +739,7 @@ class Tile(object):
         # Returns the new Tile, in_pts, out_pts
         # in_pts  : points in greedy_absorb_points now within the Tile
         # out_pts : points in greedy_absorb_points which Tile couldn't absorb
-        stile = Tile(points=self.points + points, fit_guess=self.fit_guess)
+        stile = Tile(points=self.points + points, fit_guess=self.fit_guess, writer=self.writer)
         if stile.overlaps_tiles(avoid_tiles):
             return None, [], greedy_absorb_points
         else:
@@ -706,7 +782,7 @@ class Tile(object):
             dbool = True
             if callable(decision_fun):
                 dbool = decision_fun(stile)
-                # print('dbool = {}'.format(dbool))
+                # self.writer.write('dbool = {}'.format(dbool))
             if (((not min_vol) or svol < min_vol)
                 and
                 dbool):
@@ -762,14 +838,14 @@ class Tile(object):
         # Now get the points within [lo, hi]
         inpts, outpts = self.which_points_within(self.points, lo, hi)
         # Create and return sub-Tile
-        stile = Tile(inpts, lo, hi, self.dm)
+        stile = Tile(inpts, lo, hi, self.dm, writer=self.writer)
         return stile
 
     def do_plane_fit(self):
         if self.plane_fit:
             self.previous_tilde_resd = self.plane_fit.tilde_resd
         p = Plane(points=self.points, fit_guess=self.fit_guess,
-                  dm=self.dm, lo=self.lo, hi=self.hi)
+                  dm=self.dm, lo=self.lo, hi=self.hi, writer=self.writer)
         self.plane_fit = p
         self.fit_guess = p.cpars
         self.fresh_plane_fit = True
@@ -791,7 +867,8 @@ class Tile(object):
 class Domain(object):
     def __init__(self, points=[], lo=[], hi=[], dm=None,
                  plot_lo=[], plot_hi=[],
-                 plot_dimfrac=0.9, last_domain_slice=(None, None)):
+                 plot_dimfrac=0.9, last_domain_slice=(None, None),
+                 logfile=None, summaryfile=None):
         # The Domain is just a set of Point objects
         # and functions for tiling them into a set of Tile objects.        
         self.tiles = []         # Tiles contain points
@@ -803,6 +880,14 @@ class Domain(object):
         self.scratch_points = []
         self.plot_num = 0
         self.last_domain_slice = last_domain_slice # (fig, ax) tuple
+        if logfile:
+            self.logwriter = OutputWriter(logfile)
+        else:
+            self.logwriter = (lambda x: return)
+        if summaryfile:
+            self.sumwriter = OutputWriter(summaryfile)
+        else:
+            self.sumwriter = OutputWriter()
 
         set_photogenic_lims = False
         if not list(plot_lo):
@@ -822,7 +907,7 @@ class Domain(object):
 
         if list(self.lo) and list(self.hi):
             if len(self.lo) != len(self.hi):
-                print('ERROR: lo and hi supplied with incongruous dimensions.')
+                self.logwriter.write('ERROR: lo and hi supplied with incongruous dimensions.')
                 exit()
             else:
                 if not self.dm:
@@ -831,6 +916,16 @@ class Domain(object):
         # Set up boundary masks for points
         if list(points) and list(self.lo) and list(self.hi):
             self.bc_init_mask_points(self.points)
+
+    def close(self):
+        """
+        Manually cleanup. Used for closing open file handles.
+        """
+        self.logwriter.close()
+        self.sumwriter.close()
+        # Close Tiles
+        for atile in self.tiles + self.virtual_tiles:
+            atile.close()
 
     def photogenic_plot_limits(self, dimfrac=0.9):
         """
@@ -861,13 +956,13 @@ class Domain(object):
         for i, t in enumerate(self.tiles + self.virtual_tiles):
             # Plot Tile outline
             if t.virtual:
-                print('plotting a virtual tile {}'.format(i))
+                self.logwriter.write('plotting a virtual tile {}'.format(i))
                 # Plotting options for a virtual tile
                 edgecolor_value = 'red'
                 hatch_value = '/'
                 linestyle_value = '-' # linestyle_options[ls_cycler.cycle()]
             else:
-                print('plotting a real tile {}'.format(i))
+                self.logwriter.write('plotting a real tile {}'.format(i))
                 # Plotting options for a real tile
                 edgecolor_value = 'orange'
                 hatch_value = None
@@ -915,7 +1010,7 @@ class Domain(object):
             this_plot_num = self.plot_num
         else:
             this_plot_num = save_num
-        print('SAVING PLOT NUMBER {}'.format(this_plot_num))
+        self.logwriter.write('SAVING PLOT NUMBER {}'.format(this_plot_num))
         if type(this_plot_num) == int:
             nstr = '{0:04d}'.format(this_plot_num)
         else:
@@ -927,17 +1022,20 @@ class Domain(object):
         elif not underlay_figure_axis:
             plt.close(fig)
 
-    def print_domain_report(self):
-        # Prints full (scratch) domain data
-        print('---DOMAIN REPORT---')
-        print('DOMAIN LO = {}'.format(self.lo))
-        print('DOMAIN HI = {}'.format(self.hi))
-        print('-------POINTS------')
+    def print_domain_report(self, writer=None):
+        # Prints full (scratch) domain data to the given writer
+        # If none, use the logwriter
+        if not writer:
+            writer = self.logwriter
+        self.writer.write('---DOMAIN REPORT---')
+        self.writer.write('DOMAIN LO = {}'.format(self.lo))
+        self.writer.write('DOMAIN HI = {}'.format(self.hi))
+        self.writer.write('-------POINTS------')
         for p in self.scratch_points:
-            print('{}: {}'.format(p.r, p.v))
-        print('--------TILES------')
+            self.writer.write('{}: {}'.format(p.r, p.v))
+        self.writer.write('--------TILES------')
         for i, t in enumerate(self.tiles + self.virtual_tiles):
-            t.print_tile_report(tile_number=i)
+            t.print_tile_report(tile_number=i, writer)
         
     def bc_init_mask_points(self, plist):
         # Set initial boundary masks for list of points plist given domain boundaries
@@ -960,20 +1058,20 @@ class Domain(object):
                 
         # Mask points in upper and lower bc lists
         for di, p in enumerate(dm_hi_pts):
-            # print('BC HI PT {}'.format(di))
-            # print('position: {}'.format(p.r))
+            # self.logwriter.write('BC HI PT {}'.format(di))
+            # self.logwriter.write('position: {}'.format(p.r))
             p.bedge[di] = self.hi[di]
             p.btype[di] = BCTypes.up
-            # print('bedge: {}'.format(p.bedge[di]))
-            # print('btype: {}'.format(p.btype[di]))
+            # self.logwriter.write('bedge: {}'.format(p.bedge[di]))
+            # self.logwriter.write('btype: {}'.format(p.btype[di]))
             
         for di, p in enumerate(dm_lo_pts):
-            # print('BC LO PT {}'.format(di))
-            # print('position: {}'.format(p.r))
+            # self.logwriter.write('BC LO PT {}'.format(di))
+            # self.logwriter.write('position: {}'.format(p.r))
             p.bedge[di] = self.lo[di]
             p.btype[di] = BCTypes.down
-            # print('bedge: {}'.format(p.bedge[di]))
-            # print('btype: {}'.format(p.btype[di]))
+            # self.logwriter.write('bedge: {}'.format(p.bedge[di]))
+            # self.logwriter.write('btype: {}'.format(p.btype[di]))
 
     def propagate_tile_perturbation(self, from_tile, di, dx,
                                     surface, direction,
@@ -1050,8 +1148,8 @@ class Domain(object):
                                                                     ignore_tiles=ignore_tiles_next,
                                                                     dry_run=dry_run)
                 if not could_otile_prop:
-                    print('COULD NOT SHRINK TILE ALONG DIMENSION {}'.format(di))
-                    print('--- OBSTRUCTING TILE ---')
+                    self.logwriter.write('COULD NOT SHRINK TILE ALONG DIMENSION {}'.format(di))
+                    self.logwriter.write('--- OBSTRUCTING TILE ---')
                     otile.print_tile_report()
                     return could_otile_prop
         # We didn't return with False in the otile loop so the propagation must have succeeded.
@@ -1060,24 +1158,24 @@ class Domain(object):
         if (not from_tile.virtual) and surface == -direction:
             # Experimentally shrink a virtual tile of the same size as from_tile.
             # Check to make sure it still contains enough points.
-            scratch_from_tile = Tile(lo=from_tile.lo, hi=from_tile.hi, virtual=True)
+            scratch_from_tile = Tile(lo=from_tile.lo, hi=from_tile.hi, virtual=True, writer=self.logwriter)
             scratch_from_tile.extend_dimension(di, dx, surface, direction)
             # Check to make sure that if from_tile were to shrink, then it will still contain
             # the minimum number of points required to constrain a N-D plane fit.
             inpts, outpts = scratch_from_tile.which_points_within(self.points)
             if len(inpts) <= self.dm:
-                print('SHRINKING TILE ALONG DIMENSION {} NOT POSSIBLE. TILE WOULD NOT CONTAIN AT LEAST {} POINTS'.format(di, self.dm+1))
+                self.logwriter.write('SHRINKING TILE ALONG DIMENSION {} NOT POSSIBLE. TILE WOULD NOT CONTAIN AT LEAST {} POINTS'.format(di, self.dm+1))
                 return False
             else:
-                print('VERIFIED THAT A SHRUNK TILE ALONG DIMENSION {} WOULD STILL ENCLOSE AT LEAST {} POINTS.'.format(di, self.dm+1))
+                self.logwriter.write('VERIFIED THAT A SHRUNK TILE ALONG DIMENSION {} WOULD STILL ENCLOSE AT LEAST {} POINTS.'.format(di, self.dm+1))
             
         # Perturb the dimension di of form_tile accordingly if this wasn't a dry run.
         if not dry_run:
-            print('SHRINKING TILE ALONG DIMENSION {}'.format(di))
+            self.logwriter.write('SHRINKING TILE ALONG DIMENSION {}'.format(di))
             from_tile.extend_dimension(di, dx, surface, direction)
             from_tile.print_tile_report()
         else:
-            print('COULD SHRINK TILE ALONG DIMENSION {} BUT THIS WAS A DRY RUN SO I DIDN\'T'.format(di))            
+            self.logwriter.write('COULD SHRINK TILE ALONG DIMENSION {} BUT THIS WAS A DRY RUN SO I DIDN\'T'.format(di))            
         return True
 
     def multi_propagate_tile_perturbation(self, tosc, di, dx,
@@ -1165,9 +1263,9 @@ class Domain(object):
                 bcdi.hi_bc_object.btype[di] = BCTypes.down
 
             # Explain Yourself!
-            # print('Setting Tile Boundaries along dimension {} for Reasons:'.format(di))
-            # print('lo reason: {}'.format(lo_bc_type))
-            # print('hi reason: {}'.format(hi_bc_type))
+            # self.logwriter.write('Setting Tile Boundaries along dimension {} for Reasons:'.format(di))
+            # self.logwriter.write('lo reason: {}'.format(lo_bc_type))
+            # self.logwriter.write('hi reason: {}'.format(hi_bc_type))
             atile.print_tile_report()
             # Go to next dimension
         return revised_tile # True if in some dimension we changed the tile bounds
@@ -1177,15 +1275,15 @@ class Domain(object):
         def dfun(atile):
             accept_tile = True
             if gnr_thresh:
-                # print('checking gnr_thresh')
+                # self.logwriter.write('checking gnr_thresh')
                 accept_tile = (accept_tile and
                                (atile.get_geom_norm_resd() < gnr_thresh))
             if tilde_resd_thresh:
-                # print('checking tilde_resd_thresh')
+                # self.logwriter.write('checking tilde_resd_thresh')
                 accept_tile = (accept_tile and
                                all(atile.get_tilde_resd() < tilde_resd_thresh))
             if tilde_resd_factor:
-                # print('checking tilde_resd_factor')
+                # self.logwriter.write('checking tilde_resd_factor')
                 if atile.previous_tilde_resd:
                     accept_tile = (accept_tile and
                                    all(atile.get_tilde_resd()/atile.previous_tilde_resd < tilde_resd_factor))
@@ -1193,9 +1291,9 @@ class Domain(object):
         return dfun
 
     def form_tile(self, decision_function=None):
-        # print('Executing Domain.form_tile()')
-        # print('Number of points in domain: {}'.format(len(self.scratch_points)))
-        # print('Number of tiles in domain: {}'.format(len(self.tiles)))
+        # self.logwriter.write('Executing Domain.form_tile()')
+        # self.logwriter.write('Number of points in domain: {}'.format(len(self.scratch_points)))
+        # self.logwriter.write('Number of tiles in domain: {}'.format(len(self.tiles)))
 
         # Select starting point
         # Choose the point with the closest minimum required nearest neighbors
@@ -1212,31 +1310,31 @@ class Domain(object):
                 p_start = p
                 pi_start = pi
         if not p_start and self.scratch_points:
-            print('Points remain but no starting point could be found!')
-            print('Number of Domain Points {}'.format(len(self.scratch_points)))
-            print('Number of Domain Tiles {}'.format(len(self.tiles)))
+            self.logwriter.write('Points remain but no starting point could be found!')
+            self.logwriter.write('Number of Domain Points {}'.format(len(self.scratch_points)))
+            self.logwriter.write('Number of Domain Tiles {}'.format(len(self.tiles)))
             raise TilingError(err_type=TETypes.cannot_start_point,
                               err_tile=atile,
                               scratch_points=self.scratch_points, 
                               message='Could not find a starting point!')
 
-        # print('Found starting point')
-        # print('Start index: {}'.format(pi_start))
-        # print('Start position: {}'.format(p_start.r))
+        # self.logwriter.write('Found starting point')
+        # self.logwriter.write('Start index: {}'.format(pi_start))
+        # self.logwriter.write('Start position: {}'.format(p_start.r))
             
         # Form tile with starting point
-        atile = Tile(points=[p_start], lo=p_start.r, hi=p_start.r, dm=self.dm)
+        atile = Tile(points=[p_start], lo=p_start.r, hi=p_start.r, dm=self.dm, writer=self.logwriter)
         self.scratch_points.pop(pi_start)
 
-        # print('Getting at least n+1 points')
+        # self.logwriter.write('Getting at least n+1 points')
         # Extend to enclose a total n+1 points for n-D parameter space.
         # More points may be enclosed if exactly n+1 isn't possible
         canex = True
         while len(atile.points) < self.dm+1 and canex:
             self.scratch_points, canex = atile.extend_min_volume(plist=self.scratch_points,
                                                                  avoid_tiles=self.tiles)
-            # print('Attempted tile has {} points'.format(len(atile.points)))
-        # print('Obtained {} points'.format(len(atile.points)))
+            # self.logwriter.write('Attempted tile has {} points'.format(len(atile.points)))
+        # self.logwriter.write('Obtained {} points'.format(len(atile.points)))
         
         # Check the number of points, if it's less than n+1,
         # return partially tiled points and raise an exception!
@@ -1250,20 +1348,20 @@ class Domain(object):
                               message='Could not enclose n+1 points!')
             
         # extend Tile checking the fit decision function decision_function
-        # print('Extending initial tile')
+        # self.logwriter.write('Extending initial tile')
         canex = True
         while canex:
             self.scratch_points, canex = atile.extend_min_volume(plist=self.scratch_points,
                                                                  avoid_tiles=self.tiles,
                                                                  decision_fun=decision_function)
-            # print('Attempted tile has {} points'.format(len(atile.points)))
+            # self.logwriter.write('Attempted tile has {} points'.format(len(atile.points)))
                         
         # set boundaries of atile and update point boundary masks
-        # print('Updating point boundary masks')
+        # self.logwriter.write('Updating point boundary masks')
         did_update = self.set_tile_boundaries(atile)
 
         # Add atile to tiles in this domain
-        # print('Adding tile to domain')
+        # self.logwriter.write('Adding tile to domain')
         self.tiles.append(atile)
 
         # Check that at least n+1 points remain in the domain, otherwise warn user!
@@ -1306,7 +1404,7 @@ class Domain(object):
             if min_gnr_stile:
                 canex_tiles = True
                 # set boundaries of min_gnr_stile and update point boundary masks
-                # print('Updating point boundary masks and replacing atile=>stile')
+                # self.logwriter.write('Updating point boundary masks and replacing atile=>stile')
                 self.scratch_points = min_out_spts[:]
                 self.tiles.pop(min_gnr_atile_i)
                 did_update = self.set_tile_boundaries(min_gnr_stile)
@@ -1355,7 +1453,7 @@ class Domain(object):
         tosc = []
         for ibtile, btile in enumerate(self.tiles + self.virtual_tiles):
             if not atile.colocated_with(btile):
-                print('CHECKING OSCULATION with domain tile {}'.format(ibtile))
+                self.logwriter.write('CHECKING OSCULATION with domain tile {}'.format(ibtile))
                 if get_other_sface:
                     (sface, ctile) = btile.whether_osculates_tile(atile, di,
                                                                   direction=rel_direction)
@@ -1363,13 +1461,13 @@ class Domain(object):
                     (sface, ctile) = atile.whether_osculates_tile(btile, di,
                                                                   direction=rel_direction)
                 if ctile and not sface.colocated_with(ctile):
-                    print('FOUND OSCULATION along direction {}, dimension {} with domain tile {}'.format(direction,di,ibtile))
+                    self.logwriter.write('FOUND OSCULATION along direction {}, dimension {} with domain tile {}'.format(direction,di,ibtile))
                     if return_other_tile:
                         tosc.append((btile, sface, ctile))
                     else:
                         tosc.append((sface, ctile))
                 else:
-                    print('NO PROPER SUBSET OSCULATION with domain tile {}'.format(ibtile))
+                    self.logwriter.write('NO PROPER SUBSET OSCULATION with domain tile {}'.format(ibtile))
         return tosc
                 
     def do_empty_tiling(self):
@@ -1387,16 +1485,16 @@ class Domain(object):
         this function until it returns None to indicate
         the entire Domain has been Tiled.
         """
-        print('Entered DO_EMPTY_TILING')
-        dom_tile = Tile(lo=self.lo, hi=self.hi, virtual=True)
+        self.logwriter.write('Entered DO_EMPTY_TILING')
+        dom_tile = Tile(lo=self.lo, hi=self.hi, virtual=True, writer=self.logwriter)
         ncdim = dom_tile.get_nonconstant_dimensions()
-        print('nonconstant dimensions: {}'.format(ncdim))
-        print('self.dm: {}'.format(self.dm))
-        print('dom_tile.dm: {}'.format(dom_tile.dm))
+        self.logwriter.write('nonconstant dimensions: {}'.format(ncdim))
+        self.logwriter.write('self.dm: {}'.format(self.dm))
+        self.logwriter.write('dom_tile.dm: {}'.format(dom_tile.dm))
         created_virtual_tiles = False
         # Loop over Tiles in Domain
         for iatile, atile in enumerate(self.tiles + self.virtual_tiles):
-            print('examining ATILE {}'.format(iatile))
+            self.logwriter.write('examining ATILE {}'.format(iatile))
             atile.print_tile_report()
             # Find the dimensions in which Tile has
             # a nonzero extent and can exhibit
@@ -1415,12 +1513,12 @@ class Domain(object):
             # Create a list of objects (sface, ctile): tosc
             # such that sface.lo != ctile.lo and sface.hi != ctile.hi
             for di in ncdim:
-                print('dimension {}'.format(di))
+                self.logwriter.write('dimension {}'.format(di))
                 tosc = self.get_osculating_tiles(atile, di)
-                print('TOSC LENGTH: {}'.format(len(tosc)))
-                print('atile.smask: {}'.format(atile.smask))
+                self.logwriter.write('TOSC LENGTH: {}'.format(len(tosc)))
+                self.logwriter.write('atile.smask: {}'.format(atile.smask))
                 for iaface, aface in enumerate(atile.get_surfaces(di)):
-                    print('examining AFACE'.format(iaface))
+                    self.logwriter.write('examining AFACE'.format(iaface))
                     aface.print_tile_report()
                     # For each unique surface in atile (aface):
                     # Get a list of all (sface, ctile) for which surface==sface.
@@ -1430,10 +1528,10 @@ class Domain(object):
                     surface_tiles = []
                     for (sface, ctile) in tosc:
                         if aface.colocated_with(sface):
-                            print('appending ctile')
+                            self.logwriter.write('appending ctile')
                             surface_tiles.append(ctile)
                     if not surface_tiles:
-                        print('no surface_tiles, using aface')
+                        self.logwriter.write('no surface_tiles, using aface')
                         surface_tiles.append(aface)
 
                     # Create Domain sdom from aface
@@ -1442,11 +1540,11 @@ class Domain(object):
                                   last_domain_slice=self.last_domain_slice)
                     
                     if len(ncdim) == 1:
-                        print('ONE DIMENSIONAL')
+                        self.logwriter.write('ONE DIMENSIONAL')
                         sdom.virtual_tiles.append(aface)
                     else:
                         sdom.tiles = surface_tiles
-                        print('CALLING DO_EMPTY_TILING RECURSIVELY')
+                        self.logwriter.write('CALLING DO_EMPTY_TILING RECURSIVELY')
                         sdom.do_empty_tiling()
 
                     # Extend the virtual tiles on sdom along di,
@@ -1456,7 +1554,7 @@ class Domain(object):
                     # Add the virtual tiles to Domain self as virtual tiles
                     # ONLY IF YOU COULD DO A NONZERO EXTENSION ALONG DI
                     for vtile in sdom.virtual_tiles:
-                        print('vtile smask: {}'.format(vtile.smask))
+                        self.logwriter.write('vtile smask: {}'.format(vtile.smask))
                         bcdi = vtile.get_tile_constraints(tiles=(self.tiles +
                                                                  self.virtual_tiles),
                                                           di=di)
@@ -1464,11 +1562,11 @@ class Domain(object):
                         if vtile.smask[di] == BCTypes.down:
                             if bcdi.lo_bc == BCTypes.none:
                                 # Use the domain wall if no tile constraint
-                                print('using domain wall')
+                                self.logwriter.write('using domain wall')
                                 vtile_lo = self.lo[di]
                             else:
                                 # Use the tile constraint
-                                print('using tile constraint')
+                                self.logwriter.write('using tile constraint')
                                 vtile_lo = bcdi.lo_bc
                             if vtile_lo < vtile.lo[di]:
                                 # This is an extension of vtile
@@ -1477,11 +1575,11 @@ class Domain(object):
                         elif vtile.smask[di] == BCTypes.up:
                             if bcdi.hi_bc == BCTypes.none:
                                 # Use the domain wall if no tile constraint
-                                print('using domain wall')
+                                self.logwriter.write('using domain wall')
                                 vtile_hi = self.hi[di]
                             else:
                                 # Use the tile constraint
-                                print('using tile constraint')
+                                self.logwriter.write('using tile constraint')
                                 vtile_hi = bcdi.hi_bc
                             if vtile_hi > vtile.hi[di]:
                                 # This is an extension of vtile
@@ -1489,25 +1587,25 @@ class Domain(object):
                             vtile.hi[di] = vtile_hi
                         else:
                             # Something went horribly wrong setting the virtual tile smask
-                            print('THATS IMPOSSIBLE!!')
+                            self.logwriter.write('THATS IMPOSSIBLE!!')
                             exit()
                             
                         # If you can extend vtile along di, update vtile.smask
                         # and add it to self.virtual_tiles
                         if vtile_could_extend:
-                            print('could extend vtile. appending to domain self.')
+                            self.logwriter.write('could extend vtile. appending to domain self.')
                             vtile.smask[di] = BCTypes.none
                             self.virtual_tiles.append(vtile)
                             # Update boolean created_virtual_tiles
                             created_virtual_tiles = True
                             
                     # Plot/Print sdom domain report
-                    print('PLOTTING DOMAIN SDOM')
+                    self.logwriter.write('PLOTTING DOMAIN SDOM')
                     sdom.plot_domain_slice(show_tile_id=False,
                                            save_num='ncd-{}_iat-{}_iaf-{}_di-{}'.format(len(ncdim),
                                                                                         iatile, iaface, di),
                                            underlay_figure_axis=self.last_domain_slice)
-                    print('PRINTING SDOM REPORT')
+                    self.logwriter.write('PRINTING SDOM REPORT')
                     sdom.print_domain_report()
             # Return before continuing to the next atile
             # You want the loop to consider the
@@ -1550,18 +1648,18 @@ class Domain(object):
         for ivtile, vtile in enumerate(self.virtual_tiles):
             # Find the list of dimensions of vtile ordered
             # from thinnest to thickest.
-            print('EXAMINING VTILE {} FOR SHRINKING'.format(ivtile))
+            self.logwriter.write('EXAMINING VTILE {} FOR SHRINKING'.format(ivtile))
             for di in vtile.order_thinnest_dimensions():
-                print('EXAMINING DIMENSION {}'.format(di))
+                self.logwriter.write('EXAMINING DIMENSION {}'.format(di))
                 dx = vtile.get_dim_thickness(di)
                 # Find the domain tiles which osculate vtile along di
                 # This includes real and virtual tiles.
                 tosc = self.get_osculating_tiles(vtile, di, get_other_sface=True, return_other_tile=True)
                 if not tosc:
-                    print('ERROR: VIRTUAL TILE {} DOES NOT OSCULATE A DOMAIN TILE ALONG DIMENSION {}'.format(ivtile, di))
+                    self.logwriter.write('ERROR: VIRTUAL TILE {} DOES NOT OSCULATE A DOMAIN TILE ALONG DIMENSION {}'.format(ivtile, di))
                     exit()
                 else:
-                    print('--- VTILE OSCULATES THE FOLLOWING DOMAIN TILES: ---')
+                    self.logwriter.write('--- VTILE OSCULATES THE FOLLOWING DOMAIN TILES: ---')
                     for btile, sface, ctile in tosc:
                         btile.print_tile_report()
 
@@ -1593,7 +1691,7 @@ class Domain(object):
 
                 could_propagate = True
                 for direction in [start_direction, -start_direction]:
-                    print('CHECKING DIRECTION {}'.format(direction))
+                    self.logwriter.write('CHECKING DIRECTION {}'.format(direction))
                     could_propagate = True
                     can_propagate_direction = self.multi_propagate_tile_perturbation(tosc, di, dx,
                                                                                      direction, direction,
@@ -1601,14 +1699,14 @@ class Domain(object):
                                                                                      dry_run=True)
                     could_propagate = could_propagate and can_propagate_direction
                     if can_propagate_direction:
-                        print('CAN PROPAGATE VTILE SHRINK FOR VTILE {}, DIMENSION {}, DIRECTION {}'.format(ivtile, di, direction))
+                        self.logwriter.write('CAN PROPAGATE VTILE SHRINK FOR VTILE {}, DIMENSION {}, DIRECTION {}'.format(ivtile, di, direction))
                         could_propagate = self.multi_propagate_tile_perturbation(tosc, di, dx,
                                                                                  direction, direction,
                                                                                  ignore_tiles=[vtile],
                                                                                  dry_run=False)
                         break
                     else:
-                        print('CANNOT PROPAGATE VTILE SHRINK FOR VTILE {}, DIMENSION {}, DIRECTION {}'.format(ivtile, di, direction))
+                        self.logwriter.write('CANNOT PROPAGATE VTILE SHRINK FOR VTILE {}, DIMENSION {}, DIRECTION {}'.format(ivtile, di, direction))
                         continue
                     
                 # Determine if I did a propagation above and pop vtile and return if so.
@@ -1633,7 +1731,7 @@ class Domain(object):
         created_new_virtual = False
         created_virtual_tiles = True
         while created_virtual_tiles:
-            print('>>>CALLING DO_EMPTY_TILING')
+            self.logwriter.write('>>>CALLING DO_EMPTY_TILING')
             created_virtual_tiles = self.do_empty_tiling()
             created_new_virtual = created_new_virtual or created_virtual_tiles
             if make_plots:
@@ -1668,10 +1766,10 @@ class Domain(object):
                 self.form_tile(decision_function)
                 self.plot_domain_slice(show_tile_id=False)
         except TilingError as terr:
-            print(terr.message)
-            print('Number of points in attempted tile: {}'.format(
+            self.logwriter.write(terr.message)
+            self.logwriter.write('Number of points in attempted tile: {}'.format(
                 len(terr.err_tile.points)))
-            print('Number of points remaining in domain: {}'.format(
+            self.logwriter.write('Number of points remaining in domain: {}'.format(
                 len(terr.scratch_points)))
             if (terr.err_type == TETypes.few_points_remain or
                 terr.err_type == TETypes.cannot_enclose_enough_points):
@@ -1680,7 +1778,7 @@ class Domain(object):
                 # tile overlap is the only constraint.
                 canex = True
                 while self.scratch_points and canex:
-                    print('EXTENDING EXISTING TILES')
+                    self.logwriter.write('EXTENDING EXISTING TILES')
                     canex = self.extend_existing_tiles()
                     self.plot_domain_slice(show_tile_id=False)
             else:
@@ -1697,7 +1795,7 @@ class Domain(object):
             # Shrink virtual tiles to zero volume by shifting neighboring real tiles as possible
             could_shrink_virtual = True
             while could_shrink_virtual:
-                print('>>>CALLING SHRINK_VIRTUAL_TILES')
+                self.logwriter.write('>>>CALLING SHRINK_VIRTUAL_TILES')
                 could_shrink_virtual = self.shrink_virtual_tiles()
                 self.plot_domain_slice(show_tile_id=True)
 
@@ -1708,10 +1806,12 @@ class Domain(object):
             # that isn't already in self.virtual_tiles. Complain if there is, that's a bug.
             created_virtual_tiles = self.create_virtual_tiles(make_plots=True)
             if created_virtual_tiles:
-                print('ERROR: VIRTUAL TILE CREATED AFTER SHRINK_VIRTUAL_TILES!!!')
+                self.logwriter.write('ERROR: VIRTUAL TILE CREATED AFTER SHRINK_VIRTUAL_TILES!!!')
                 exit()
         
         # Output Results
         self.plot_domain_slice()
-        self.print_domain_report()
-        print('COMPLETED DOMAIN TILING!')
+        self.print_domain_report(self.logwriter)
+        if self.sumwriter.ofile:
+            self.print_domain_report(self.sumwriter)
+        self.logwriter.write('COMPLETED DOMAIN TILING!')
