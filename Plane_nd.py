@@ -74,7 +74,7 @@ class Plane_nd(object):
         return fvals
 
     def dolsq(self, guess=None, do_print=False):
-        if guess:
+        if list(guess):
             # If guess is provided, it should provide a vector for the initial values xini
             xini = np.array(guess)
         else:
