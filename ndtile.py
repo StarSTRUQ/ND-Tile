@@ -44,6 +44,8 @@ parser.add_argument('-tsym', '--tilesymmetry', type=float,
                     help='Threshold on normalized residual symmetry across a tile.')
 parser.add_argument('-fsym', '--factortilesymmetry', type=float, 
                     help='Threshold on growth factor for normalized residual symmetry across a tile.')
+parser.add_argument('-pint', '--plotintermediate', action='store_true',
+                    help='If supplied, plot the domain at intermediate steps whenever a new point is added to a tile.')
 parser.add_argument('-noshrink', '--noshrink', action='store_true',
                     help='If supplied, virtual tiles containing empty space will not be shrunk after point tiling.')
 parser.add_argument('-log', '--logfile', type=str,
@@ -76,7 +78,8 @@ dom = Domain(points=pointlist, lo=lo, hi=hi, logfile=args.logfile, summaryfile=a
 
 # Tile Domain
 dom.do_domain_tiling(gnr_thresh=args.gnrthresh, tilde_resd_thresh=args.tilesymmetry,
-                     tilde_resd_factor=args.factortilesymmetry, attempt_virtual_shrink=(not args.noshrink))
+                     tilde_resd_factor=args.factortilesymmetry, attempt_virtual_shrink=(not args.noshrink),
+                     plot_intermediate=args.plotintermediate)
 
 # Cleanup, closing open file handles
 dom.close()
