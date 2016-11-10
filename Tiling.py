@@ -1380,7 +1380,7 @@ class Domain(object):
                                                                  avoid_tiles=self.tiles,
                                                                  dom_lo=self.lo, dom_hi=self.hi)
             if plot_intermediate:
-                self.plot_domain_slice_scratch(atile, show_tile_id=True)
+                self.plot_domain_slice_scratch(atile)
                 
             # self.logwriter.write('Attempted tile has {} points'.format(len(atile.points)))
         # self.logwriter.write('Obtained {} points'.format(len(atile.points)))
@@ -1405,7 +1405,7 @@ class Domain(object):
                                                                  decision_fun=decision_function,
                                                                  dom_lo=self.lo, dom_hi=self.hi)
             if plot_intermediate:
-                self.plot_domain_slice_scratch(atile, show_tile_id=True)
+                self.plot_domain_slice_scratch(atile)
             # self.logwriter.write('Attempted tile has {} points'.format(len(atile.points)))
                         
         # set boundaries of atile and update point boundary masks
