@@ -23,5 +23,3 @@ To import Tiling, just add the ND-Tile directory to your PYTHONPATH environment 
 * Add unit testing
 
 * Domain slicing should plot all possible 2-D slices by default.
-
-* Virtual tile shrinking should not shrink a real tile such that it has fewer than N+1 points.
