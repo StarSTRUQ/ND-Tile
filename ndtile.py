@@ -44,8 +44,14 @@ parser.add_argument('-tsym', '--tilesymmetry', type=float,
                     help='Threshold on normalized residual symmetry across a tile.')
 parser.add_argument('-fsym', '--factortilesymmetry', type=float, 
                     help='Threshold on growth factor for normalized residual symmetry across a tile.')
+parser.add_argument('-ptsf', '--plotsurfaces', action='store_true',
+                    help='If supplied, plot tile surfaces when searching for empty space to create virtual tiles.')
 parser.add_argument('-pint', '--plotintermediate', action='store_true',
                     help='If supplied, plot the domain at intermediate steps whenever a new point is added to a tile.')
+parser.add_argument('-ptil', '--plottiling', action='store_true',
+                    help='If supplied, plot the domain whenever a new tile is added to the domain.')
+parser.add_argument('-pfin', '--plotfinal', action='store_true',
+                    help='If supplied, plot the domain when tiling is complete.')
 parser.add_argument('-noshrink', '--noshrink', action='store_true',
                     help='If supplied, virtual tiles containing empty space will not be shrunk after point tiling.')
 parser.add_argument('-log', '--logfile', type=str,
@@ -79,7 +85,8 @@ dom = Domain(points=pointlist, lo=lo, hi=hi, logfile=args.logfile, summaryfile=a
 # Tile Domain
 dom.do_domain_tiling(gnr_thresh=args.gnrthresh, tilde_resd_thresh=args.tilesymmetry,
                      tilde_resd_factor=args.factortilesymmetry, attempt_virtual_shrink=(not args.noshrink),
-                     plot_intermediate=args.plotintermediate)
+                     plot_tile_surfaces=args.plotsurfaces, plot_intermediate=args.plotintermediate,
+                     plot_tiling=args.plottiling, plot_final=args.plotfinal)
 
 # Cleanup, closing open file handles
 dom.close()

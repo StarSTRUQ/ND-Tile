@@ -1522,7 +1522,7 @@ class Domain(object):
                     self.logwriter.write('NO PROPER SUBSET OSCULATION with domain tile {}'.format(ibtile))
         return tosc
                 
-    def do_empty_tiling(self):
+    def do_empty_tiling(self, plot_tile_surfaces=False):
         """
         Creates empty virtual subtiles to cover the domain dom.
 
@@ -1597,7 +1597,7 @@ class Domain(object):
                     else:
                         sdom.tiles = surface_tiles
                         self.logwriter.write('CALLING DO_EMPTY_TILING RECURSIVELY')
-                        sdom.do_empty_tiling()
+                        sdom.do_empty_tiling(plot_tile_surfaces=plot_tile_surfaces)
 
                     # Extend the virtual tiles on sdom along di,
                     # using the Tile constraints of Domain self.
@@ -1653,10 +1653,11 @@ class Domain(object):
                             
                     # Plot/Print sdom domain report
                     self.logwriter.write('PLOTTING DOMAIN SDOM')
-                    sdom.plot_domain_slice(show_tile_id=False,
-                                           save_num='ncd-{}_iat-{}_iaf-{}_di-{}'.format(len(ncdim),
-                                                                                        iatile, iaface, di),
-                                           underlay_figure_axis=self.last_domain_slice)
+                    if plot_tile_surfaces:
+                        sdom.plot_domain_slice(show_tile_id=False,
+                                               save_num='ncd-{}_iat-{}_iaf-{}_di-{}'.format(len(ncdim),
+                                                                                            iatile, iaface, di),
+                                               underlay_figure_axis=self.last_domain_slice)
                     self.logwriter.write('PRINTING SDOM REPORT')
                     sdom.print_domain_report()
             # Return before continuing to the next atile
@@ -1772,7 +1773,7 @@ class Domain(object):
                     return True # True to indicate we eliminated a vtile
         return False # Return False if no virtual tiles could be eliminated.
 
-    def create_virtual_tiles(self, make_plots=False):
+    def create_virtual_tiles(self, make_plots=False, plot_tile_surfaces=False):
         """
         Tile all untiled space in the domain into virtual tiles
         and add them to self.virtual_tiles.
@@ -1784,7 +1785,7 @@ class Domain(object):
         created_virtual_tiles = True
         while created_virtual_tiles:
             self.logwriter.write('>>>CALLING DO_EMPTY_TILING')
-            created_virtual_tiles = self.do_empty_tiling()
+            created_virtual_tiles = self.do_empty_tiling(plot_tile_surfaces=plot_tile_surfaces)
             created_new_virtual = created_new_virtual or created_virtual_tiles
             if make_plots and created_virtual_tiles:
                 self.plot_domain_slice(show_tile_id=False)
@@ -1804,7 +1805,8 @@ class Domain(object):
                 
     def do_domain_tiling(self, gnr_thresh=None, tilde_resd_thresh=None,
                          tilde_resd_factor=None, attempt_virtual_shrink=False,
-                         plot_intermediate=False):
+                         plot_tile_surfaces=False, plot_intermediate=False,
+                         plot_tiling=False, plot_final=True):
         # Initialize a list of scratch points for tiling
         self.scratch_points = self.points[:]
         # Clear current tiling
@@ -1818,7 +1820,8 @@ class Domain(object):
             while self.scratch_points:
                 self.form_tile(decision_function=decision_function,
                                plot_intermediate=plot_intermediate)
-                self.plot_domain_slice(show_tile_id=True)
+                if plot_tiling:
+                    self.plot_domain_slice(show_tile_id=True)
         except TilingError as terr:
             self.logwriter.write(terr.message)
             self.logwriter.write('Number of points in attempted tile: {}'.format(
@@ -1834,16 +1837,19 @@ class Domain(object):
                 while self.scratch_points and canex:
                     self.logwriter.write('EXTENDING EXISTING TILES')
                     canex = self.extend_existing_tiles()
-                    self.plot_domain_slice(show_tile_id=True)
+                    if plot_tiling:
+                        self.plot_domain_slice(show_tile_id=True)
             else:
                 raise
 
         # Update the boundaries of existing tiles to help eliminate empty untiled space
         self.bound_existing_tiles()
-        self.plot_domain_slice(show_tile_id=True, save_last_figure=True)
+        if plot_tiling:
+            self.plot_domain_slice(show_tile_id=True, save_last_figure=True)
                     
         # Tile any remaining empty untiled space into virtual tiles
-        created_virtual_tiles = self.create_virtual_tiles(make_plots=True)
+        created_virtual_tiles = self.create_virtual_tiles(make_plots=plot_tiling,
+                                                          plot_tile_surfaces=plot_tile_surfaces)
         
         if attempt_virtual_shrink:
             # Shrink virtual tiles to zero volume by shifting neighboring real tiles as possible
@@ -1858,13 +1864,15 @@ class Domain(object):
 
             # See if there exists any new empty untiled space that should be a virtual tile
             # that isn't already in self.virtual_tiles. Complain if there is, that's a bug.
-            created_virtual_tiles = self.create_virtual_tiles(make_plots=True)
+            created_virtual_tiles = self.create_virtual_tiles(make_plots=plot_tiling,
+                                                              plot_tile_surfaces=plot_tile_surfaces)
             if created_virtual_tiles:
                 self.logwriter.write('ERROR: VIRTUAL TILE CREATED AFTER SHRINK_VIRTUAL_TILES!!!')
                 exit()
         
         # Output Results
-        self.plot_domain_slice()
+        if plot_final:
+            self.plot_domain_slice()
         self.print_domain_report(self.logwriter)
         if self.sumwriter.ofile:
             self.print_domain_report(self.sumwriter)
