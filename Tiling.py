@@ -203,12 +203,9 @@ class Plane(object):
         ivars = np.array([p.r for p in points])
         dvars = np.array([p.v for p in points])
         fitter = Plane_nd(ivars, dvars, self.dm)
-        popt, pcov = fitter.dolsq(fit_guess)
+        popt, perr = fitter.dolsq(fit_guess)
         self.cpars = popt
-        if not np.array([pcov==None]).all():
-            self.cerrs = np.sqrt(np.diag(pcov))
-        else:
-            self.cerrs = [None for di in range(self.dm+1)]
+        self.cerrs = perr
         dpfit = np.array([fitter.fplane(ivr, popt) for ivr in ivars])
         if not list(self.center):
             self.center = np.mean(ivars, axis=0)

@@ -61,6 +61,7 @@ class Plane_nd(object):
         self.dm = dm
         self.npars = self.dm+1
         self.npts = len(self.dvals)
+        self.ndf = self.npts - self.npars
     
     def fplane(self, x, *cpars):
         cpars = np.array(cpars)
@@ -97,15 +98,26 @@ class Plane_nd(object):
                 dv_min = self.dvals[iv_min_i]
                 # Estimate slope
                 xini[i] = (dv_max - dv_min)/(iv_max - iv_min)/self.dm
-        popt, pcov, idict, mesg, ierr = leastsq(self.objfun, xini, full_output=True, xtol=1.e-20, ftol=1.e-16)
+        popt, pcov_jac, idict, mesg, ierr = leastsq(self.objfun, xini, full_output=True, xtol=1.e-20, ftol=1.e-16)
+        # pcov is the jacobian around the solution. It will be None if it's a singular matrix.
+        # A singular matrix, or pcov = None, indicates flat curvature in some direction.
+        # Multiply by residual variance to obtain parameter covariance.
+        resd = self.objfun(popt)
+        if self.ndf > 0 and pcov_jac is not None:
+            # Residual variance calculation. NDF = # POINTS - # FIT PARS. resd_var
+            resd_var = np.sum(resd**2)/self.ndf
+            pcov = pcov_jac * resd_var
+            perr = np.sqrt(np.diag(pcov))
+        else:
+            perr = [None for di in range(self.npars)]
         if do_print:
             print(popt)
-            print(pcov)
+            print(perr)
             for k in idict.keys():
                 print('{}: {}'.format(k, idict[k]))
             print(mesg)
             print(ierr)
-        return popt, pcov
+        return popt, perr
 
 
 
