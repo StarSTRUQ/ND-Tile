@@ -966,7 +966,7 @@ class Domain(object):
         self.plot_hi = center + 0.5 * plot_width
             
     def plot_domain_slice(self, dimx=0, dimy=1, save_num=None, show_tile_id=True,
-                          save_last_figure=False, underlay_figure_axis=None):
+                          save_last_figure=False, underlay_figure_axis=None, show_plot=False):
         if self.dm < 2:
             return
         # Plot 2-D Slice of Domain
@@ -1042,10 +1042,30 @@ class Domain(object):
             nstr = str(this_plot_num)
         fig.savefig('tiled_domain_{}.eps'.format(nstr))
         fig.savefig('tiled_domain_{}.png'.format(nstr))
+        if show_plot:
+            plt.show()
         if save_last_figure:
             self.last_domain_slice = (fig, ax)
         elif not underlay_figure_axis:
             plt.close(fig)
+
+    def plot_domain_slice_scratch(self, stile, dimx=0, dimy=1, save_num=None, show_tile_id=True,
+                                  save_last_figure=False, underlay_figure_axis=None, show_plot=False):
+        """
+        Given a scratch tile, add it to the tiles in this domain, plot the domain slice,
+        and then pop the tile from the domain tiles so the domain is unaffected.
+        """
+        if stile.virtual:
+            self.virtual_tiles.append(stile)
+        else:
+            self.tiles.append(stile)
+        self.plot_domain_slice(dimx=dimx, dimy=dimy, save_num=save_num, show_tile_id=show_tile_id,
+                               save_last_figure=save_last_figure,
+                               underlay_figure_axis=underlay_figure_axis, show_plot=show_plot)
+        if stile.virtual:
+            self.virtual_tiles.pop()
+        else:
+            self.tiles.pop()
 
     def print_domain_report(self, writer=None):
         # Prints full (scratch) domain data to the given writer
@@ -1315,7 +1335,7 @@ class Domain(object):
             return accept_tile
         return dfun
 
-    def form_tile(self, decision_function=None):
+    def form_tile(self, decision_function=None, plot_intermediate=False):
         # self.logwriter.write('Executing Domain.form_tile()')
         # self.logwriter.write('Number of points in domain: {}'.format(len(self.scratch_points)))
         # self.logwriter.write('Number of tiles in domain: {}'.format(len(self.tiles)))
@@ -1359,6 +1379,9 @@ class Domain(object):
             self.scratch_points, canex = atile.extend_min_volume(plist=self.scratch_points,
                                                                  avoid_tiles=self.tiles,
                                                                  dom_lo=self.lo, dom_hi=self.hi)
+            if plot_intermediate:
+                self.plot_domain_slice_scratch(atile, show_tile_id=True)
+                
             # self.logwriter.write('Attempted tile has {} points'.format(len(atile.points)))
         # self.logwriter.write('Obtained {} points'.format(len(atile.points)))
         
@@ -1381,6 +1404,8 @@ class Domain(object):
                                                                  avoid_tiles=self.tiles,
                                                                  decision_fun=decision_function,
                                                                  dom_lo=self.lo, dom_hi=self.hi)
+            if plot_intermediate:
+                self.plot_domain_slice_scratch(atile, show_tile_id=True)
             # self.logwriter.write('Attempted tile has {} points'.format(len(atile.points)))
                         
         # set boundaries of atile and update point boundary masks
@@ -1761,7 +1786,7 @@ class Domain(object):
             self.logwriter.write('>>>CALLING DO_EMPTY_TILING')
             created_virtual_tiles = self.do_empty_tiling()
             created_new_virtual = created_new_virtual or created_virtual_tiles
-            if make_plots:
+            if make_plots and created_virtual_tiles:
                 self.plot_domain_slice(show_tile_id=False)
         return created_new_virtual
 
