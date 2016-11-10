@@ -1803,7 +1803,8 @@ class Domain(object):
             atile.do_plane_fit()
                 
     def do_domain_tiling(self, gnr_thresh=None, tilde_resd_thresh=None,
-                         tilde_resd_factor=None, attempt_virtual_shrink=False):
+                         tilde_resd_factor=None, attempt_virtual_shrink=False,
+                         plot_intermediate=False):
         # Initialize a list of scratch points for tiling
         self.scratch_points = self.points[:]
         # Clear current tiling
@@ -1815,7 +1816,8 @@ class Domain(object):
         # Tile the domain given the decision function
         try:
             while self.scratch_points:
-                self.form_tile(decision_function)
+                self.form_tile(decision_function=decision_function,
+                               plot_intermediate=plot_intermediate)
                 self.plot_domain_slice(show_tile_id=False)
         except TilingError as terr:
             self.logwriter.write(terr.message)
