@@ -64,8 +64,6 @@ pt_dvals = data[-1]
 # Create list of Points
 pointlist = []
 for r, v in zip(pt_ivals, pt_dvals):
-    print('r: {}'.format(r))
-    print('v: {}'.format(v))
     p = Point(r, v)
     pointlist.append(p)
 
