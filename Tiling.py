@@ -1818,7 +1818,7 @@ class Domain(object):
             while self.scratch_points:
                 self.form_tile(decision_function=decision_function,
                                plot_intermediate=plot_intermediate)
-                self.plot_domain_slice(show_tile_id=False)
+                self.plot_domain_slice(show_tile_id=True)
         except TilingError as terr:
             self.logwriter.write(terr.message)
             self.logwriter.write('Number of points in attempted tile: {}'.format(
@@ -1834,13 +1834,13 @@ class Domain(object):
                 while self.scratch_points and canex:
                     self.logwriter.write('EXTENDING EXISTING TILES')
                     canex = self.extend_existing_tiles()
-                    self.plot_domain_slice(show_tile_id=False)
+                    self.plot_domain_slice(show_tile_id=True)
             else:
                 raise
 
         # Update the boundaries of existing tiles to help eliminate empty untiled space
         self.bound_existing_tiles()
-        self.plot_domain_slice(show_tile_id=False, save_last_figure=True)
+        self.plot_domain_slice(show_tile_id=True, save_last_figure=True)
                     
         # Tile any remaining empty untiled space into virtual tiles
         created_virtual_tiles = self.create_virtual_tiles(make_plots=True)
