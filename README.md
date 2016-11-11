@@ -1,6 +1,6 @@
 # ND-Tile
 
-nTile a scalar field in an N-dimensional independent variable space using N-dimensional planar fitting.
+Tile a scalar field in an N-dimensional independent variable space using N-dimensional planar fitting.
 
 ## Usage
 
