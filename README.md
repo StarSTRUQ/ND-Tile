@@ -1,6 +1,6 @@
 # ND-Tile
 
-Tile a scalar field in an N-dimensional independent variable space using N-dimensional planar fitting.
+nTile a scalar field in an N-dimensional independent variable space using N-dimensional planar fitting.
 
 ## Usage
 
@@ -23,3 +23,6 @@ To import Tiling, just add the ND-Tile directory to your PYTHONPATH environment 
 * Add unit testing
 
 * Domain slicing should plot all possible 2-D slices by default.
+
+* Convert domain slicing code into an object to make it easier to pass
+  arguments around that are general to the program.
