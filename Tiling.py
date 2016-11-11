@@ -127,6 +127,8 @@ class Point(object):
     def __init__(self, r=[], v=None):
         # Position in n-D space
         self.r = np.array(r, copy=True)
+        # Position in n-D space normalized by domain extents
+        self.rnorm = np.copy(r)
         # Value of point (Scalar)
         self.v = v
         self.dm = len(r)
@@ -135,16 +137,16 @@ class Point(object):
         # n-D Mask: Boundary Type represented by Point
         self.btype = [BCTypes.none for i in range(self.dm)]
 
-    def dist_to_pt(self, b):
+    def norm_dist_to_pt(self, b):
         # Get distance between this Point and Point b
-        dr = np.array(self.r) - np.array(b.r)
+        dr = np.array(self.rnorm) - np.array(b.rnorm)
         return np.sqrt(np.sum(dr**2))
 
     def order_nn(self, plist=[]):
         # Orders the points in plist by nearest neighbors to self.
         if not list(plist):
             return None
-        retlist = sorted(plist, key=(lambda p: self.dist_to_pt(p)))
+        retlist = sorted(plist, key=(lambda p: self.norm_dist_to_pt(p)))
         return retlist
 
     def get_average_dist_nn(self, plist=[], num_neighbors=1):
@@ -154,7 +156,7 @@ class Point(object):
             return None
         ordered_plist = self.order_nn(plist)
         which_nn = ordered_plist[:num_neighbors]
-        dist_nn = np.array([self.dist_to_pt(nn) for nn in which_nn])
+        dist_nn = np.array([self.norm_dist_to_pt(nn) for nn in which_nn])
         ave_dist_nn = np.mean(dist_nn)
         return ave_dist_nn
 
@@ -892,6 +894,7 @@ class Tile(object):
 class Domain(object):
     def __init__(self, points=[], lo=[], hi=[], dm=None,
                  plot_lo=[], plot_hi=[],
+                 point_normalize=True,
                  plot_dimfrac=0.9, last_domain_slice=(None, None),
                  logfile=None, summaryfile=None):
         # The Domain is just a set of Point objects
@@ -941,6 +944,13 @@ class Domain(object):
         # Set up boundary masks for points
         if list(points) and list(self.lo) and list(self.hi):
             self.bc_init_mask_points(self.points)
+
+        if point_normalize:
+            # Normalize point positions by domain extents
+            width = self.hi - self.lo
+            for p in self.points:
+                for di in range(self.dm):
+                    p.rnorm[di] = (p.rnorm[di]-self.lo[di])/width[di] + self.lo[di]
 
     def close(self):
         """
