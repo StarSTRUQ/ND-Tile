@@ -1040,7 +1040,7 @@ class Domain(object):
             nstr = '{0:04d}'.format(this_plot_num)
         else:
             nstr = str(this_plot_num)
-        fig.savefig('tiled_domain_{}.eps'.format(nstr))
+#        fig.savefig('tiled_domain_{}.eps'.format(nstr))
         fig.savefig('tiled_domain_{}.png'.format(nstr))
         if show_plot:
             plt.show()
