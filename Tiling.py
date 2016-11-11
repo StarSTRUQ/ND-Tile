@@ -1,5 +1,5 @@
 """
-Tile an n-D domain containing Point objects depending on a decision function.
+Tile an N-Dimensional Domain containing Point objects depending on a Tile decision function.
 
 Copyright (c) 2016, Donald E. Willcox
 All rights reserved.
