@@ -168,6 +168,10 @@ class Plane(object):
         self.cerrs = None # Length n+1 for n-D space, std err on cpars
         self.dm = dm
         self.resd  = None
+        self.ss_res = None
+        self.ave_dvar = None
+        self.ss_tot = None
+        self.coeff_det = None
         self.norm_resd = None
         self.L2_norm_resd = None
         self.tilde_resd = None
@@ -888,6 +892,13 @@ class Tile(object):
         self.fit_guess = np.copy(p.cpars)
         self.fresh_plane_fit = True
 
+    def get_coeff_det(self):
+        # Returns coefficient of determination
+        # between the points in the Tile and a Plane fit.
+        if not self.fresh_plane_fit:
+            self.do_plane_fit()
+        return self.plane_fit.coeff_det
+
     def get_L2_norm_resd(self):
         # Returns L-2 norm of normalized residuals
         # between the points in the Tile and a Plane fit.
@@ -1336,10 +1347,14 @@ class Domain(object):
             # Go to next dimension
         return revised_tile # True if in some dimension we changed the tile bounds
 
-    def tiling_decision_function(self, L2r_thresh=None, tilde_resd_thresh=None,
-                                 tilde_resd_factor=None):
+    def tiling_decision_function(self, L2r_thresh=None, coeff_det_thresh=None,
+                                 tilde_resd_thresh=None, tilde_resd_factor=None):
         def dfun(atile):
             accept_tile = True
+            if coeff_det_thresh:
+                # self.logwriter.write('checking coeff_det_thresh')
+                accept_tile = (accept_tile and
+                               (atile.get_coeff_det() < coeff_det_thresh))
             if L2r_thresh:
                 # self.logwriter.write('checking L2r_thresh')
                 accept_tile = (accept_tile and
@@ -1824,8 +1839,9 @@ class Domain(object):
             atile.points = in_pts[:]
             atile.do_plane_fit()
                 
-    def do_domain_tiling(self, L2r_thresh=None, tilde_resd_thresh=None,
-                         tilde_resd_factor=None, attempt_virtual_shrink=False,
+    def do_domain_tiling(self, L2r_thresh=None, coeff_det_thresh=None,
+                         tilde_resd_thresh=None, tilde_resd_factor=None,
+                         attempt_virtual_shrink=False,
                          plot_tile_surfaces=False, plot_intermediate=False,
                          plot_tiling=False, plot_final=True):
         # Initialize a list of scratch points for tiling
@@ -1834,6 +1850,7 @@ class Domain(object):
         self.tiles = []
         # Get the decision function
         decision_function = self.tiling_decision_function(L2r_thresh=L2r_thresh,
+                                                          coeff_det_thresh=coeff_det_thresh,
                                                           tilde_resd_thresh=tilde_resd_thresh,
                                                           tilde_resd_factor=tilde_resd_factor)
         # Tile the domain given the decision function
