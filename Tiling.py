@@ -1835,10 +1835,22 @@ class Domain(object):
         in the tiles are reset to only those points
         assigned here.
         """
-        for atile in self.tiles:
+        for iatile, atile in enumerate(self.tiles):
             in_pts, out_pts = atile.which_points_within(self.points)
+            if set(in_pts) != set(atile.points):
+                self.logwriter.write('TILE {} UPDATE CONTAINED POINTS!! PREVIOUS NUMPTS = {}, NEW NUMPTS = {}'.format(iatile, len(atile.points), len(in_pts)))
+            # Set tile points to the points it now contains
             atile.points = in_pts[:]
+            # Update the fit on the tile
             atile.do_plane_fit()
+            # If any of in_pts were in scratch_points (i.e., they remained untiled)
+            # then remove them from scratch_points
+            for p in in_pts:
+                try:
+                    ip = self.scratch_points.index(p)
+                    self.scratch_points.pop(ip)
+                except:
+                    continue
                 
     def do_domain_tiling(self, L2r_thresh=None, coeff_det_thresh=None,
                          tilde_resd_thresh=None, tilde_resd_factor=None,
