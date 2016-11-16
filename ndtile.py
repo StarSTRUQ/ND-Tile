@@ -39,9 +39,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument('infile', type=str,
                     help='Name of the input csv file containing (x1, x2, ..., y) data series for scalar data of the form y=f(x1, x2, ...). One line of header will be skipped.')
 parser.add_argument('-L2rt', '--L2resthresh', type=float, 
-                    help='Threshold for tiling constraint: L-2 norm of normalized residuals.')
+                    help='Upper threshold for tiling constraint: L-2 norm of normalized residuals.')
 parser.add_argument('-cfdt', '--cdetthresh', type=float, 
-                    help='Threshold for tiling constraint: coefficient of determination.')
+                    help='Lower threshold for tiling constraint: coefficient of determination.')
 parser.add_argument('-tsym', '--tilesymmetry', type=float, 
                     help='Threshold on normalized residual symmetry across a tile.')
 parser.add_argument('-fsym', '--factortilesymmetry', type=float, 

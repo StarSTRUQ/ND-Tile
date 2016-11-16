@@ -1354,7 +1354,7 @@ class Domain(object):
             if coeff_det_thresh:
                 # self.logwriter.write('checking coeff_det_thresh')
                 accept_tile = (accept_tile and
-                               (atile.get_coeff_det() < coeff_det_thresh))
+                               (atile.get_coeff_det() > coeff_det_thresh))
             if L2r_thresh:
                 # self.logwriter.write('checking L2r_thresh')
                 accept_tile = (accept_tile and
