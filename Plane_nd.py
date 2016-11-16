@@ -115,7 +115,7 @@ class Plane_nd(object):
                 dv_min = self.dvals[iv_min_i]
                 # Estimate slope
                 xini[i] = (dv_max - dv_min)/(iv_max - iv_min)/self.dm
-        popt, pcov, idict, mesg, ierr = leastsq(self.objfun, xini, dfun=self.objjac,
+        popt, pcov, idict, mesg, ierr = leastsq(self.objfun, xini, Dfun=self.objjac,
                                                     full_output=True, xtol=1.e-20, ftol=1.e-16)
         # pcov is derived from the jacobian around the solution. It will be None if it's a singular matrix.
         # A singular matrix, or pcov = None, indicates flat curvature in some direction.
