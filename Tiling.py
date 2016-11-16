@@ -463,6 +463,7 @@ class Tile(object):
         if not self.virtual:
             writer.write('--- NPTS = {} ---'.format(len(self.points)))
             writer.write('--- L2 NORMALIZED RESD. = {} ---'.format(self.get_L2_norm_resd()))
+            writer.write('--- COEFFICIENT OF DETERMINATION = {} ---'.format(self.get_coeff_det()))
             writer.write('--- TILDE RESD. = {} ---'.format(self.get_tilde_resd()))
             self.print_fit_report(writer)
             writer.write('------- POINTS ------')
