@@ -62,17 +62,34 @@ class Plane_nd(object):
         self.npars = self.dm+1
         self.npts = len(self.dvals)
         self.ndf = self.npts - self.npars
+
+    def zcoord(self, x):
+        # Return padded coordinate vector for multiplying
+        # by the plane coefficients by prepending 1
+        # to the coordinate vector to multiply against
+        # the constant plane coefficient.
+        z = np.empty(self.npars)
+        z[1:self.npars] = x[0:self.dm]
+        z[0] = 1.0
+        return z
     
     def fplane(self, x, *cpars):
         cpars = np.array(cpars)
-        xp = np.empty(self.npars)
-        xp[1:self.npars] = x[0:self.dm]
-        xp[0] = 1.0
-        return np.sum(xp * cpars)
+        z = self.zcoord(x)
+        return np.sum(z * cpars)
 
     def objfun(self, pars):
+        # Objective function for the least squares fit.
+        # Returns a vector of the fit errors given parameters.
         fvals = np.array([dv - self.fplane(iv,pars) for dv, iv in zip(self.dvals, self.ivals)])
         return fvals
+
+    def objjac(self, pars):
+        # Jacobian of the objective function wrt parameters
+        # Returns a matrix with derivatives across rows
+        # and independent variable points along columns.
+        jac = np.array([-self.zcoord(iv) for iv in self.ivals])
+        return jac
 
     def dolsq(self, guess=[], do_print=False):
         if list(guess):
@@ -98,16 +115,17 @@ class Plane_nd(object):
                 dv_min = self.dvals[iv_min_i]
                 # Estimate slope
                 xini[i] = (dv_max - dv_min)/(iv_max - iv_min)/self.dm
-        popt, pcov_jac, idict, mesg, ierr = leastsq(self.objfun, xini, full_output=True, xtol=1.e-20, ftol=1.e-16)
-        # pcov is the jacobian around the solution. It will be None if it's a singular matrix.
+        popt, pcov, idict, mesg, ierr = leastsq(self.objfun, xini, dfun=self.objjac,
+                                                    full_output=True, xtol=1.e-20, ftol=1.e-16)
+        # pcov is derived from the jacobian around the solution. It will be None if it's a singular matrix.
         # A singular matrix, or pcov = None, indicates flat curvature in some direction.
         # Multiply by residual variance to obtain parameter covariance.
         resd = self.objfun(popt)
-        if self.ndf > 0 and pcov_jac is not None:
+        if self.ndf > 0 and pcov is not None:
             # Residual variance calculation. NDF = # POINTS - # FIT PARS. resd_var
             resd_var = np.sum(resd**2)/self.ndf
-            pcov = pcov_jac * resd_var
-            perr = np.sqrt(np.diag(pcov))
+            pcovariance = pcov * resd_var
+            perr = np.sqrt(np.diag(pcovariance))
         else:
             perr = [None for di in range(self.npars)]
         if do_print:
