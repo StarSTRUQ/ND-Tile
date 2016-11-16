@@ -169,7 +169,7 @@ class Plane(object):
         self.dm = dm
         self.resd  = None
         self.norm_resd = None
-        self.geom_norm_resd = None
+        self.L2_norm_resd = None
         self.tilde_resd = None
         self.lo = np.copy(lo)
         self.hi = np.copy(hi)
@@ -213,15 +213,26 @@ class Plane(object):
             self.center = np.mean(ivars, axis=0)
         if not list(self.width):
             self.width = np.amax(ivars, axis=0) - np.amin(ivars, axis=0)
+
+        ## GOODNESS OF FIT STATISTICS
         self.resd = dvars - dpfit
         
         self.abs_delta_pos = np.absolute(np.array([ivr-self.center for ivr in ivars]))
         self.tilde_resd = np.absolute(np.sum(self.resd * np.transpose(self.abs_delta_pos), axis=1))
         # normalize tilde_resd by the central plane value and the tile dimensions
         self.tilde_resd = self.tilde_resd/(self.center * self.width)
+
+        # Sum of squares of residuals
+        self.ss_res = np.sum(self.resd**2)
+        # Mean of scalar values
+        self.ave_dvar = np.mean(dvars)
+        # Total sum of squares
+        self.ss_tot = np.sum((dvars - self.ave_dvar)**2)
+        # Coefficient of Determination R^2 = 1 - SS(residuals)/SS(total)
+        self.coeff_det = 1.0 - self.ss_res/self.ss_tot
         
-        self.norm_resd = self.resd/dvars
-        self.geom_norm_resd = np.sqrt(np.sum(self.norm_resd**2))
+        self.norm_resd = self.resd/dvars # Residuals normalized by dependent variable samples
+        self.L2_norm_resd = np.sqrt(np.sum(self.norm_resd**2)) # L-2 norm of normalized residuals
         
 class Tile(object):
     def __init__(self, points=[], lo=[], hi=[], fit_guess=[], dm=None, smask=None,
@@ -447,7 +458,7 @@ class Tile(object):
         writer.write('--- SURFACE MASK = {} ---'.format(self.smask))
         if not self.virtual:
             writer.write('--- NPTS = {} ---'.format(len(self.points)))
-            writer.write('--- GEOM. MEAN NORM RESD. = {} ---'.format(self.get_geom_norm_resd()))
+            writer.write('--- L2 NORMALIZED RESD. = {} ---'.format(self.get_L2_norm_resd()))
             writer.write('--- TILDE RESD. = {} ---'.format(self.get_tilde_resd()))
             self.print_fit_report(writer)
             writer.write('------- POINTS ------')
@@ -877,12 +888,12 @@ class Tile(object):
         self.fit_guess = np.copy(p.cpars)
         self.fresh_plane_fit = True
 
-    def get_geom_norm_resd(self):
-        # Returns geometric mean of normalized residuals
+    def get_L2_norm_resd(self):
+        # Returns L-2 norm of normalized residuals
         # between the points in the Tile and a Plane fit.
         if not self.fresh_plane_fit:
             self.do_plane_fit()
-        return self.plane_fit.geom_norm_resd
+        return self.plane_fit.L2_norm_resd
 
     def get_tilde_resd(self):
         # Returns residual-weighted sum of central deviances
@@ -1325,14 +1336,14 @@ class Domain(object):
             # Go to next dimension
         return revised_tile # True if in some dimension we changed the tile bounds
 
-    def tiling_decision_function(self, gnr_thresh=None, tilde_resd_thresh=None,
+    def tiling_decision_function(self, L2r_thresh=None, tilde_resd_thresh=None,
                                  tilde_resd_factor=None):
         def dfun(atile):
             accept_tile = True
-            if gnr_thresh:
-                # self.logwriter.write('checking gnr_thresh')
+            if L2r_thresh:
+                # self.logwriter.write('checking L2r_thresh')
                 accept_tile = (accept_tile and
-                               (atile.get_geom_norm_resd() < gnr_thresh))
+                               (atile.get_L2_norm_resd() < L2r_thresh))
             if tilde_resd_thresh:
                 # self.logwriter.write('checking tilde_resd_thresh')
                 accept_tile = (accept_tile and
@@ -1444,9 +1455,9 @@ class Domain(object):
         for j, p in enumerate(self.scratch_points):
             other_points = self.scratch_points[:]
             other_points.pop(j)
-            min_gnr = None
-            min_gnr_stile = None
-            min_gnr_atile_i = None
+            min_L2r = None
+            min_L2r_stile = None
+            min_L2r_atile_i = None
             min_out_spts = None
             for i, atile in enumerate(self.tiles):
                 other_tiles = self.tiles[:]
@@ -1458,19 +1469,19 @@ class Domain(object):
                     dbool = True
                     if callable(decision_function):
                         dbool = decision_function(stile)
-                    if dbool and (not min_gnr or stile.get_geom_norm_resd() < min_gnr):
-                        min_gnr = stile.get_geom_norm_resd()
-                        min_gnr_stile = stile
-                        min_gnr_atile_i = i
+                    if dbool and (not min_L2r or stile.get_L2_norm_resd() < min_L2r):
+                        min_L2r = stile.get_L2_norm_resd()
+                        min_L2r_stile = stile
+                        min_L2r_atile_i = i
                         min_out_spts = out_spts[:]
-            if min_gnr_stile:
+            if min_L2r_stile:
                 canex_tiles = True
-                # set boundaries of min_gnr_stile and update point boundary masks
+                # set boundaries of min_L2r_stile and update point boundary masks
                 # self.logwriter.write('Updating point boundary masks and replacing atile=>stile')
                 self.scratch_points = min_out_spts[:]
-                self.tiles.pop(min_gnr_atile_i)
-                did_update = self.set_tile_boundaries(min_gnr_stile)
-                self.tiles.append(min_gnr_stile)
+                self.tiles.pop(min_L2r_atile_i)
+                did_update = self.set_tile_boundaries(min_L2r_stile)
+                self.tiles.append(min_L2r_stile)
                 break
         return canex_tiles
 
@@ -1813,7 +1824,7 @@ class Domain(object):
             atile.points = in_pts[:]
             atile.do_plane_fit()
                 
-    def do_domain_tiling(self, gnr_thresh=None, tilde_resd_thresh=None,
+    def do_domain_tiling(self, L2r_thresh=None, tilde_resd_thresh=None,
                          tilde_resd_factor=None, attempt_virtual_shrink=False,
                          plot_tile_surfaces=False, plot_intermediate=False,
                          plot_tiling=False, plot_final=True):
@@ -1822,7 +1833,7 @@ class Domain(object):
         # Clear current tiling
         self.tiles = []
         # Get the decision function
-        decision_function = self.tiling_decision_function(gnr_thresh=gnr_thresh,
+        decision_function = self.tiling_decision_function(L2r_thresh=L2r_thresh,
                                                           tilde_resd_thresh=tilde_resd_thresh,
                                                           tilde_resd_factor=tilde_resd_factor)
         # Tile the domain given the decision function
