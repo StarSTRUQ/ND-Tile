@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Do Tiling for an N-dimensional data set given an input CSV file
 containing one point per row. Each point is specified by a set 
