@@ -1179,8 +1179,8 @@ class Domain(object):
         would either interfere with or pull away from if it already osculates
         them along dimension di. Correct those tile dimensions and propagate
         the changes throughout the domain recursively. Never shrink a tile
-        by more than dx if it's of width dx or smaller. In that case, leave
-        an empty region.
+        by more than dx if it's of width dx or smaller. In that case, 
+        return False to indicate the propagation could not succeed.
 
         The surface mask smask of this Tile will be checked and
         if it is not equal to BCTypes.none to indicate this Tile is a surface
@@ -1771,18 +1771,6 @@ class Domain(object):
                     for btile, sface, ctile in tosc:
                         btile.print_tile_report()
 
-                # Check to see if the thickness of vtile along di
-                # is narrower than that of all osculating
-                # tiles along di.
-                too_thick = False
-                for btile, sface, ctile in tosc:
-                    if dx >= btile.hi[di] - btile.lo[di]:
-                        too_thick = True
-                        break
-                if too_thick:
-                    # Continue to the next dimension
-                    continue
-
                 # Find the direction in which to collapse vtile 
                 # which allows expanding the nearby tiles of largest volume
                 volume_up = 0.0
@@ -1820,6 +1808,7 @@ class Domain(object):
                 # Determine if I did a propagation above and pop vtile and return if so.
                 if could_propagate:
                     # Pop vtile from self.virtual_tiles
+                    self.logwriter.write('>>>SUCCESSFULLY SHRUNK VIRTUAL TILE {}'.format(ivtile))
                     self.virtual_tiles.pop(ivtile)
                     # Return to the calling code so
                     # the loop over self.virtual_tiles
@@ -1922,12 +1911,14 @@ class Domain(object):
         
         if attempt_virtual_shrink:
             # Shrink virtual tiles to zero volume by shifting neighboring real tiles as possible
+            num_virtual_tiles = len(self.virtual_tiles)
             could_shrink_virtual = True
             while could_shrink_virtual:
                 self.logwriter.write('>>>CALLING SHRINK_VIRTUAL_TILES')
                 could_shrink_virtual = self.shrink_virtual_tiles()
                 self.plot_domain_slice(show_tile_id=True)
-
+            if len(self.virtual_tiles) == num_virtual_tiles and num_virtual_tiles != 0:
+                self.logwriter.write('>>>WARNING: COULD NOT SHRINK ALL VIRTUAL TILES -- {} REMAIN'.format(len(self.virtual_tiles)))
             # Reallocate points to real tiles and repeat fitting to update stats.
             self.static_tile_assign_points()
 
