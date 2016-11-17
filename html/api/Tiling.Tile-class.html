@@ -1,0 +1,1389 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>Tiling.Tile</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="Tiling-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="https://github.com/dwillcox/ND-Tile">ND-Tile</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="Tiling-module.html">Module&nbsp;Tiling</a> ::
+        Class&nbsp;Tile
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="Tiling.Tile-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class Tile</h1><p class="nomargin-top"><span class="codelink"><a href="Tiling-pysrc.html#Tile">source&nbsp;code</a></span></p>
+<center>
+<center>  <map id="uml_class_diagram_for_tiling_t_2" name="uml_class_diagram_for_tiling_t_2">
+<area shape="rect" id="node1_14" href="Tiling.Tile-class.html#__init__" title="x.__init__(...) initializes x; see help(type(x)) for signature" alt="" coords="17,37,615,57"/>
+<area shape="rect" id="node1_15" href="Tiling.Tile-class.html#close" title="Manually cleanup." alt="" coords="17,57,615,77"/>
+<area shape="rect" id="node1_16" href="Tiling.Tile-class.html#extend_dimension" title="Tiling.Tile.extend_dimension" alt="" coords="17,77,615,97"/>
+<area shape="rect" id="node1_17" href="Tiling.Tile-class.html#get_dim_thickness" title="Given the dimension di, return the thickness of this tile along di." alt="" coords="17,97,615,117"/>
+<area shape="rect" id="node1_18" href="Tiling.Tile-class.html#get_thinnest_dimension" title="Find the dimension di in which this Tile is thinnest." alt="" coords="17,117,615,137"/>
+<area shape="rect" id="node1_19" href="Tiling.Tile-class.html#order_thinnest_dimensions" title="Return the dimensions of this Tile in a list ordered by the Tile thickness &#160;in each dimension from smallest to largest." alt="" coords="17,137,615,157"/>
+<area shape="rect" id="node1_20" href="Tiling.Tile-class.html#colocated_with" title="Determine whether self and btile are colocated." alt="" coords="17,157,615,177"/>
+<area shape="rect" id="node1_21" href="Tiling.Tile-class.html#gen_vertices" title="Return a generator for the vertices of this Tile." alt="" coords="17,177,615,197"/>
+<area shape="rect" id="node1_22" href="Tiling.Tile-class.html#create_surface" title="Make and return the surface of this Tile defined by the constant dimension &#160;(di) where the surface normal of Tile along di on this surface lies in the &#160;direction given by (surface)" alt="" coords="17,197,615,217"/>
+<area shape="rect" id="node1_23" href="Tiling.Tile-class.html#get_surfaces" title="Return the surfaces for this Tile as Tile objects." alt="" coords="17,217,615,237"/>
+<area shape="rect" id="node1_24" href="Tiling.Tile-class.html#get_constant_dimensions" title="Find all dimensions di for which lo[di] == hi[di] == constant" alt="" coords="17,237,615,257"/>
+<area shape="rect" id="node1_25" href="Tiling.Tile-class.html#get_nonconstant_dimensions" title="Find all dimensions di for which lo[di] != hi[di]" alt="" coords="17,257,615,277"/>
+<area shape="rect" id="node1_26" href="Tiling.Tile-class.html#print_tile_report" title="Prints report of this Tile to the writer." alt="" coords="17,277,615,297"/>
+<area shape="rect" id="node1_27" href="Tiling.Tile-class.html#get_tilde_resd" title="Tiling.Tile.get_tilde_resd" alt="" coords="17,317,615,337"/>
+<area shape="rect" id="node1" href="Tiling.Tile-class.html" title="Tiling.Tile" alt="" coords="5,5,627,344"/>
+</map>
+  <img src="uml_class_diagram_for_tiling_t_2.png" alt='' usemap="#uml_class_diagram_for_tiling_t_2" ismap="ismap" class="graph-without-title" />
+</center>
+</center>
+<hr />
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Tile-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">points</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">lo</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">hi</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">fit_guess</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">dm</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">smask</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">virtual</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">writer</span>=<span class="summary-sig-default">None</span>)</span><br />
+      x.__init__(...) initializes x; see help(type(x)) for signature</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Tile-class.html#close" class="summary-sig-name">close</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Manually cleanup.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.close">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="extend_dimension"></a><span class="summary-sig-name">extend_dimension</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">di</span>,
+        <span class="summary-sig-arg">dx</span>,
+        <span class="summary-sig-arg">surface</span>,
+        <span class="summary-sig-arg">direction</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.extend_dimension">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_dim_thickness"></a><span class="summary-sig-name">get_dim_thickness</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">di</span>)</span><br />
+      Given the dimension di, return the thickness of this tile along di.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.get_dim_thickness">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Tile-class.html#get_thinnest_dimension" class="summary-sig-name">get_thinnest_dimension</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Find the dimension di in which this Tile is thinnest.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.get_thinnest_dimension">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="order_thinnest_dimensions"></a><span class="summary-sig-name">order_thinnest_dimensions</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return the dimensions of this Tile in a list ordered by the Tile 
+      thickness in each dimension from smallest to largest.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.order_thinnest_dimensions">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Tile-class.html#colocated_with" class="summary-sig-name">colocated_with</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">btile</span>,
+        <span class="summary-sig-arg">di</span>=<span class="summary-sig-default">-1</span>)</span><br />
+      Determine whether self and btile are colocated.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.colocated_with">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="gen_vertices"></a><span class="summary-sig-name">gen_vertices</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return a generator for the vertices of this Tile.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.gen_vertices">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="create_surface"></a><span class="summary-sig-name">create_surface</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">di</span>,
+        <span class="summary-sig-arg">surface</span>)</span><br />
+      Make and return the surface of this Tile defined by the constant 
+      dimension (di) where the surface normal of Tile along di on this 
+      surface lies in the direction given by (surface)</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.create_surface">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Tile-class.html#get_surfaces" class="summary-sig-name">get_surfaces</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dj</span>=<span class="summary-sig-default">-1</span>)</span><br />
+      Return the surfaces for this Tile as Tile objects.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.get_surfaces">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Tile-class.html#get_constant_dimensions" class="summary-sig-name">get_constant_dimensions</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Find all dimensions di for which lo[di] == hi[di] == constant</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.get_constant_dimensions">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Tile-class.html#get_nonconstant_dimensions" class="summary-sig-name">get_nonconstant_dimensions</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Find all dimensions di for which lo[di] != hi[di]</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.get_nonconstant_dimensions">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Tile-class.html#print_tile_report" class="summary-sig-name">print_tile_report</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">tile_number</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">writer</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Prints report of this Tile to the writer.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.print_tile_report">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Tile-class.html#print_fit_report" class="summary-sig-name">print_fit_report</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">writer</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Prints report of the fit on this Tile to the writer.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.print_fit_report">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Tile-class.html#get_volume" class="summary-sig-name">get_volume</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dom_lo</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">dom_hi</span>=<span class="summary-sig-default">[]</span>)</span><br />
+      Computes volume of the Tile.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.get_volume">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="boundary_minimize"></a><span class="summary-sig-name">boundary_minimize</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Given the points in the Tile, set the boundary defined by [lo, hi] to
+      the minimum surface enclosing the points.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.boundary_minimize">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Tile-class.html#extend_points" class="summary-sig-name">extend_points</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">plist</span>=<span class="summary-sig-default">[]</span>)</span><br />
+      Given the list of points (plist), extends the Tile if necessary to 
+      enclose them.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.extend_points">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Tile-class.html#overlaps_point_dimension" class="summary-sig-name">overlaps_point_dimension</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">refpoint</span>,
+        <span class="summary-sig-arg">di</span>)</span><br />
+      Checks to see if self overlaps refpoint in the dimension di:</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.overlaps_point_dimension">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Tile-class.html#get_point_occlusions" class="summary-sig-name">get_point_occlusions</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">points</span>,
+        <span class="summary-sig-arg">di</span>)</span><br />
+      Given a list of points (points), find the points which will occlude 
+      self along dimension di and thus can set bounds.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.get_point_occlusions">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Tile-class.html#get_point_constraints" class="summary-sig-name">get_point_constraints</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">points</span>,
+        <span class="summary-sig-arg">di</span>,
+        <span class="summary-sig-arg">bcdi</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Get point based [lo, hi] constraints along dimension di for this 
+      Tile.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.get_point_constraints">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Tile-class.html#overlaps_tile_dimension" class="summary-sig-name">overlaps_tile_dimension</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">reftile</span>,
+        <span class="summary-sig-arg">di</span>)</span><br />
+      Checks to see if self overlaps reftile in the dimension di:</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.overlaps_tile_dimension">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Tile-class.html#overlaps_tiles" class="summary-sig-name">overlaps_tiles</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">tlist</span>=<span class="summary-sig-default">[]</span>)</span><br />
+      Checks to see if self overlaps any of the tiles in tlist</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.overlaps_tiles">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Tile-class.html#get_tile_occlusions" class="summary-sig-name">get_tile_occlusions</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">tiles</span>,
+        <span class="summary-sig-arg">di</span>)</span><br />
+      Given a list of tile objects (tiles), find the tiles in tiles which 
+      are not self which will occlude self along dimension di and thus can 
+      set bounds.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.get_tile_occlusions">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Tile-class.html#whether_occludes_tile" class="summary-sig-name">whether_occludes_tile</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">atile</span>,
+        <span class="summary-sig-arg">di</span>)</span><br />
+      Determine whether self and atile occlude along dimension di.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.whether_occludes_tile">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Tile-class.html#whether_osculates_tile" class="summary-sig-name">whether_osculates_tile</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">atile</span>,
+        <span class="summary-sig-arg">di</span>,
+        <span class="summary-sig-arg">direction</span>=<span class="summary-sig-default">BCTypes.none</span>)</span><br />
+      Determine whether self and atile osculate on any surface in dimension
+      di.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.whether_osculates_tile">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_tile_intersection"></a><span class="summary-sig-name">get_tile_intersection</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">atile</span>)</span><br />
+      Return the tile which is the intersection of self and atile.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.get_tile_intersection">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Tile-class.html#get_tile_constraints" class="summary-sig-name">get_tile_constraints</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">tiles</span>,
+        <span class="summary-sig-arg">di</span>,
+        <span class="summary-sig-arg">bcdi</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Get tile based [lo, hi] constraints along dimension di for this Tile.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.get_tile_constraints">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_hypothetical_extend"></a><span class="summary-sig-name">get_hypothetical_extend</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">points</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">avoid_tiles</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">greedy_absorb_points</span>=<span class="summary-sig-default">[]</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.get_hypothetical_extend">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Tile-class.html#extend_min_volume" class="summary-sig-name">extend_min_volume</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">plist</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">avoid_tiles</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">decision_fun</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">dom_lo</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">dom_hi</span>=<span class="summary-sig-default">[]</span>)</span><br />
+      Given the list of points (plist), extends the Tile by adding one 
+      point from plist to Tile where the point is selected from plist such 
+      that it minimizes the normalized volume of Tile.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.extend_min_volume">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="which_points_within"></a><span class="summary-sig-name">which_points_within</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">pointlist</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">lo</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">hi</span>=<span class="summary-sig-default">[]</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.which_points_within">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_subtile"></a><span class="summary-sig-name">get_subtile</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">lo</span>,
+        <span class="summary-sig-arg">hi</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.get_subtile">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="do_plane_fit"></a><span class="summary-sig-name">do_plane_fit</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.do_plane_fit">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_coeff_det"></a><span class="summary-sig-name">get_coeff_det</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.get_coeff_det">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_L2_norm_resd"></a><span class="summary-sig-name">get_L2_norm_resd</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.get_L2_norm_resd">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="get_tilde_resd"></a><span class="summary-sig-name">get_tilde_resd</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Tile.get_tilde_resd">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Properties</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Properties"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">points</span>=<span class="sig-default">[]</span>,
+        <span class="sig-arg">lo</span>=<span class="sig-default">[]</span>,
+        <span class="sig-arg">hi</span>=<span class="sig-default">[]</span>,
+        <span class="sig-arg">fit_guess</span>=<span class="sig-default">[]</span>,
+        <span class="sig-arg">dm</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">smask</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">virtual</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">writer</span>=<span class="sig-default">None</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Tile.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
+  <dl class="fields">
+    <dt>Overrides:
+        object.__init__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="close"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">close</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Tile.close">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Manually cleanup. Used for closing open file handles.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_thinnest_dimension"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_thinnest_dimension</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Tile.get_thinnest_dimension">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Find the dimension di in which this Tile is thinnest.</p>
+  <p>Also find the thickness dx along dimension di.</p>
+  <p>Return (di, dx)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="colocated_with"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">colocated_with</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">btile</span>,
+        <span class="sig-arg">di</span>=<span class="sig-default">-1</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Tile.colocated_with">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Determine whether self and btile are colocated.</p>
+  <p>If the optional argument di is provided, determines whether self and 
+  btile are colocated only considering dimension di.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_surfaces"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_surfaces</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">dj</span>=<span class="sig-default">-1</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Tile.get_surfaces">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return the surfaces for this Tile as Tile objects.</p>
+  <p>The distinguishing feature of the surface relative to this Tile is 
+  that, although the surface and Tile are of the same dimensionality, there
+  is at least one dimension di in which the surface tile has lo[di] == 
+  hi[di] == constant.</p>
+  <p>In case this tile is already a surface, then only set the constraint 
+  lo[di] == hi[di] == constant if lo[di] != hi[di].</p>
+  <p>If dj is provided, only return surfaces for which lo[dj] == hi[dj] == 
+  constant.</p>
+  <p>Otherwise return all such surfaces if dj is not provided (-1). I'm 
+  using -1 here because 0 is a valid dimension but tests as a boolean 
+  False.</p>
+  <p>If dj is provided and it is not a nonconstant dimension, then return 
+  an empty list.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_constant_dimensions"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_constant_dimensions</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Tile.get_constant_dimensions">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Find all dimensions di for which lo[di] == hi[di] == constant</p>
+  <p>Return a list of tuples [(di, constant), ...] satisfying that 
+  condition.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_nonconstant_dimensions"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_nonconstant_dimensions</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Tile.get_nonconstant_dimensions">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Find all dimensions di for which lo[di] != hi[di]</p>
+  <p>Return a list of such dimensions di.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="print_tile_report"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">print_tile_report</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">tile_number</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">writer</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Tile.print_tile_report">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Prints report of this Tile to the writer. If writer==None, use 
+  self.writer.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="print_fit_report"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">print_fit_report</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">writer</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Tile.print_fit_report">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Prints report of the fit on this Tile to the writer. If writer==None, 
+  use self.writer.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_volume"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_volume</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">dom_lo</span>=<span class="sig-default">[]</span>,
+        <span class="sig-arg">dom_hi</span>=<span class="sig-default">[]</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Tile.get_volume">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Computes volume of the Tile. If [lo, hi] is undefined, return None. If
+  dom_lo and dom_hi are supplied, normalize the tile dimensions by the 
+  dimensions of domain lo and hi first before computing a normalized 
+  volume.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="extend_points"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">extend_points</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">plist</span>=<span class="sig-default">[]</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Tile.extend_points">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Given the list of points (plist), extends the Tile if necessary to 
+  enclose them.</p>
+  <p>Set the Tile boundaries to the minimum volume enclosing the provided 
+  points.</p>
+  <p>Do nothing if no points are provided.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="overlaps_point_dimension"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">overlaps_point_dimension</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">refpoint</span>,
+        <span class="sig-arg">di</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Tile.overlaps_point_dimension">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Checks to see if self overlaps refpoint in the dimension di:</p>
+  <p>refpoint must be a Point object</p>
+  <p>di must be an integer in range(self.dm)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_point_occlusions"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_point_occlusions</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">points</span>,
+        <span class="sig-arg">di</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Tile.get_point_occlusions">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Given a list of points (points), find the points which will occlude 
+  self along dimension di and thus can set bounds.</p>
+  <p>Return a list of such points.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_point_constraints"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_point_constraints</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">points</span>,
+        <span class="sig-arg">di</span>,
+        <span class="sig-arg">bcdi</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Tile.get_point_constraints">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Get point based [lo, hi] constraints along dimension di for this 
+  Tile.</p>
+  <p>Return boundary conditions along dimension di in bcdi.</p>
+  <p>Calculates point occlusions from the list of points (points)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="overlaps_tile_dimension"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">overlaps_tile_dimension</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">reftile</span>,
+        <span class="sig-arg">di</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Tile.overlaps_tile_dimension">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Checks to see if self overlaps reftile in the dimension di:</p>
+  <p>reftile must be a Tile object</p>
+  <p>di must be an integer in range(self.dm).</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="overlaps_tiles"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">overlaps_tiles</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">tlist</span>=<span class="sig-default">[]</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Tile.overlaps_tiles">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Checks to see if self overlaps any of the tiles in tlist</p>
+  <p>Returns list of tiles in tlist which overlap self</p>
+  <p>Returns the empty list if no tiles in tlist overlap self</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_tile_occlusions"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_tile_occlusions</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">tiles</span>,
+        <span class="sig-arg">di</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Tile.get_tile_occlusions">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Given a list of tile objects (tiles), find the tiles in tiles which 
+  are not self which will occlude self along dimension di and thus can set 
+  bounds.</p>
+  <p>Return a list of such tiles.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="whether_occludes_tile"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">whether_occludes_tile</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">atile</span>,
+        <span class="sig-arg">di</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Tile.whether_occludes_tile">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Determine whether self and atile occlude along dimension di.</p>
+  <p>Return True if they occlude, False otherwise.</p>
+  <p>By design, occlusion is false if the tiles overlap along dimension di 
+  or if they are the same tile.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="whether_osculates_tile"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">whether_osculates_tile</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">atile</span>,
+        <span class="sig-arg">di</span>,
+        <span class="sig-arg">direction</span>=<span class="sig-default">BCTypes.none</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Tile.whether_osculates_tile">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Determine whether self and atile osculate on any surface in dimension 
+  di.</p>
+  <p>If direction is supplied, then the osculation surface relative to self
+  should have the surface normal mask equal to direction.</p>
+  <p>Find the surface of self which is osculated (sface)</p>
+  <p>Also find the ctile which is the intersection of the osculating 
+  surfaces of self and atile.</p>
+  <p>Return (sface, ctile) in case atile osculates self.</p>
+  <p>Otherwise return (None, None)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_tile_constraints"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_tile_constraints</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">tiles</span>,
+        <span class="sig-arg">di</span>,
+        <span class="sig-arg">bcdi</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Tile.get_tile_constraints">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Get tile based [lo, hi] constraints along dimension di for this 
+  Tile.</p>
+  <p>Return boundary conditions along dimension di in bcdi.</p>
+  <p>Calculates tile occlusions from the list tiles.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="extend_min_volume"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">extend_min_volume</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">plist</span>=<span class="sig-default">[]</span>,
+        <span class="sig-arg">avoid_tiles</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">decision_fun</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">dom_lo</span>=<span class="sig-default">[]</span>,
+        <span class="sig-arg">dom_hi</span>=<span class="sig-default">[]</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Tile.extend_min_volume">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Given the list of points (plist), extends the Tile by adding one point
+  from plist to Tile where the point is selected from plist such that it 
+  minimizes the normalized volume of Tile. The normalized volume is the 
+  product of tile dimensions, each normalized by the extent of the domain 
+  in each dimension, passed via dom_lo and dom_hi arguments. If either of 
+  those arguments are not supplied, then do not normalize the volume.</p>
+  <p>Returns plist where the selected point is popped from the list.</p>
+  <p>If avoid_tiles is passed, it should be a list of Tile objects. The 
+  current Tile will then only be extended such that it does not intersect 
+  the tiles in avoid_tiles.</p>
+  <p>If a function is passed as decision_fun, this Tile will be passed to 
+  the 'decision function' to determine whether to extend the tile. 
+  decision_fun should take a single Tile argument and return True or 
+  False</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="Tiling-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="https://github.com/dwillcox/ND-Tile">ND-Tile</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Thu Nov 17 17:47:51 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

@@ -1,0 +1,1001 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>Tiling.Domain</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="Tiling-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="https://github.com/dwillcox/ND-Tile">ND-Tile</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="Tiling-module.html">Module&nbsp;Tiling</a> ::
+        Class&nbsp;Domain
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="Tiling.Domain-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class Domain</h1><p class="nomargin-top"><span class="codelink"><a href="Tiling-pysrc.html#Domain">source&nbsp;code</a></span></p>
+<center>
+<center>  <map id="uml_class_diagram_for_tiling_d_2" name="uml_class_diagram_for_tiling_d_2">
+<area shape="rect" id="node1_14" href="Tiling.Domain-class.html#__init__" title="x.__init__(...) initializes x; see help(type(x)) for signature" alt="" coords="18,37,1361,57"/>
+<area shape="rect" id="node1_15" href="Tiling.Domain-class.html#close" title="Manually cleanup." alt="" coords="18,57,1361,77"/>
+<area shape="rect" id="node1_16" href="Tiling.Domain-class.html#photogenic_plot_limits" title="Compute the appropriate plot limits [self.plot_lo, self.plot_hi] for which &#160;2&#45;D domain slices will plot the domain [self.lo, self.hi] such that the &#160;domain extents in each dimension occupy the fraction dimfrac of their &#160;corresponding axis." alt="" coords="18,77,1361,97"/>
+<area shape="rect" id="node1_17" href="Tiling.Domain-class.html#plot_domain_slice" title="Tiling.Domain.plot_domain_slice" alt="" coords="18,97,1361,117"/>
+<area shape="rect" id="node1_18" href="Tiling.Domain-class.html#plot_domain_slice_scratch" title="Given a scratch tile, add it to the tiles in this domain, plot the domain &#160;slice, and then pop the tile from the domain tiles so the domain is &#160;unaffected." alt="" coords="18,117,1361,137"/>
+<area shape="rect" id="node1_19" href="Tiling.Domain-class.html#print_domain_report" title="Tiling.Domain.print_domain_report" alt="" coords="18,137,1361,157"/>
+<area shape="rect" id="node1_20" href="Tiling.Domain-class.html#bc_init_mask_points" title="Tiling.Domain.bc_init_mask_points" alt="" coords="18,157,1361,177"/>
+<area shape="rect" id="node1_21" href="Tiling.Domain-class.html#propagate_tile_perturbation" title="Extend the boundaries of from_tile along dimension di by length dx." alt="" coords="18,177,1361,197"/>
+<area shape="rect" id="node1_22" href="Tiling.Domain-class.html#multi_propagate_tile_perturbation" title="Wrapper for propagate_tile_perturbation that takes a list tosc of (btile, &#160;sface, ctile) where btile is to be perturbed and propagated in direction if sface&#39;s surface mask matches surface." alt="" coords="18,197,1361,217"/>
+<area shape="rect" id="node1_23" href="Tiling.Domain-class.html#get_tile_boundaries" title="Given atile and a dimension di, return the [lo, hi] boundaries in a BCDim &#160;object." alt="" coords="18,217,1361,237"/>
+<area shape="rect" id="node1_24" href="Tiling.Domain-class.html#set_tile_boundaries" title="Given atile, sets its [lo, hi] boundaries in each dimension." alt="" coords="18,237,1361,257"/>
+<area shape="rect" id="node1_25" href="Tiling.Domain-class.html#tiling_decision_function" title="Tiling.Domain.tiling_decision_function" alt="" coords="18,257,1361,277"/>
+<area shape="rect" id="node1_26" href="Tiling.Domain-class.html#form_tile" title="Tiling.Domain.form_tile" alt="" coords="18,277,1361,297"/>
+<area shape="rect" id="node1_27" href="Tiling.Domain-class.html#do_domain_tiling" title="Tiling.Domain.do_domain_tiling" alt="" coords="18,317,1361,337"/>
+<area shape="rect" id="node1" href="Tiling.Domain-class.html" title="Tiling.Domain" alt="" coords="5,5,1372,344"/>
+</map>
+  <img src="uml_class_diagram_for_tiling_d_2.png" alt='' usemap="#uml_class_diagram_for_tiling_d_2" ismap="ismap" class="graph-without-title" />
+</center>
+</center>
+<hr />
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Domain-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">points</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">lo</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">hi</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">dm</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">plot_lo</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">plot_hi</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">point_normalize</span>=<span class="summary-sig-default">True</span>,
+        <span class="summary-sig-arg">plot_dimfrac</span>=<span class="summary-sig-default">0.9</span>,
+        <span class="summary-sig-arg">last_domain_slice</span>=<span class="summary-sig-default">(None,None)</span>,
+        <span class="summary-sig-arg">dlabels</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">ilabel</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">logfile</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">summaryfile</span>=<span class="summary-sig-default">None</span>)</span><br />
+      x.__init__(...) initializes x; see help(type(x)) for signature</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Domain.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Domain-class.html#close" class="summary-sig-name">close</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Manually cleanup.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Domain.close">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="photogenic_plot_limits"></a><span class="summary-sig-name">photogenic_plot_limits</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dimfrac</span>=<span class="summary-sig-default">0.9</span>)</span><br />
+      Compute the appropriate plot limits [self.plot_lo, self.plot_hi] for 
+      which 2-D domain slices will plot the domain [self.lo, self.hi] such 
+      that the domain extents in each dimension occupy the fraction dimfrac
+      of their corresponding axis.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Domain.photogenic_plot_limits">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="plot_domain_slice"></a><span class="summary-sig-name">plot_domain_slice</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">dimx</span>=<span class="summary-sig-default">0</span>,
+        <span class="summary-sig-arg">dimy</span>=<span class="summary-sig-default">1</span>,
+        <span class="summary-sig-arg">save_num</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">show_tile_id</span>=<span class="summary-sig-default">True</span>,
+        <span class="summary-sig-arg">save_last_figure</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">underlay_figure_axis</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">show_plot</span>=<span class="summary-sig-default">False</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Domain.plot_domain_slice">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="plot_domain_slice_scratch"></a><span class="summary-sig-name">plot_domain_slice_scratch</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">stile</span>,
+        <span class="summary-sig-arg">dimx</span>=<span class="summary-sig-default">0</span>,
+        <span class="summary-sig-arg">dimy</span>=<span class="summary-sig-default">1</span>,
+        <span class="summary-sig-arg">save_num</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">show_tile_id</span>=<span class="summary-sig-default">True</span>,
+        <span class="summary-sig-arg">save_last_figure</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">underlay_figure_axis</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">show_plot</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Given a scratch tile, add it to the tiles in this domain, plot the 
+      domain slice, and then pop the tile from the domain tiles so the 
+      domain is unaffected.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Domain.plot_domain_slice_scratch">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="print_domain_report"></a><span class="summary-sig-name">print_domain_report</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">writer</span>=<span class="summary-sig-default">None</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Domain.print_domain_report">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="bc_init_mask_points"></a><span class="summary-sig-name">bc_init_mask_points</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">plist</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Domain.bc_init_mask_points">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Domain-class.html#propagate_tile_perturbation" class="summary-sig-name">propagate_tile_perturbation</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">from_tile</span>,
+        <span class="summary-sig-arg">di</span>,
+        <span class="summary-sig-arg">dx</span>,
+        <span class="summary-sig-arg">surface</span>,
+        <span class="summary-sig-arg">direction</span>,
+        <span class="summary-sig-arg">ignore_tiles</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">dry_run</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Extend the boundaries of from_tile along dimension di by length dx.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Domain.propagate_tile_perturbation">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Domain-class.html#multi_propagate_tile_perturbation" class="summary-sig-name">multi_propagate_tile_perturbation</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">tosc</span>,
+        <span class="summary-sig-arg">di</span>,
+        <span class="summary-sig-arg">dx</span>,
+        <span class="summary-sig-arg">surface</span>,
+        <span class="summary-sig-arg">direction</span>,
+        <span class="summary-sig-arg">ignore_tiles</span>=<span class="summary-sig-default">[]</span>,
+        <span class="summary-sig-arg">dry_run</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Wrapper for propagate_tile_perturbation that takes a list tosc of 
+      (btile, sface, ctile) where btile is to be perturbed and propagated 
+      in direction if sface's surface mask matches surface.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Domain.multi_propagate_tile_perturbation">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Domain-class.html#get_tile_boundaries" class="summary-sig-name">get_tile_boundaries</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">atile</span>,
+        <span class="summary-sig-arg">di</span>,
+        <span class="summary-sig-arg">allow_bc_types</span>=<span class="summary-sig-default">[BCTypes.all_types]</span>)</span><br />
+      Given atile and a dimension di, return the [lo, hi] boundaries in a 
+      BCDim object.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Domain.get_tile_boundaries">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Domain-class.html#set_tile_boundaries" class="summary-sig-name">set_tile_boundaries</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">atile</span>,
+        <span class="summary-sig-arg">allow_bc_types</span>=<span class="summary-sig-default">[BCTypes.all_types]</span>)</span><br />
+      Given atile, sets its [lo, hi] boundaries in each dimension.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Domain.set_tile_boundaries">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="tiling_decision_function"></a><span class="summary-sig-name">tiling_decision_function</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">L2r_thresh</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">coeff_det_thresh</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">tilde_resd_thresh</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">tilde_resd_factor</span>=<span class="summary-sig-default">None</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Domain.tiling_decision_function">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="form_tile"></a><span class="summary-sig-name">form_tile</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">decision_function</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">plot_intermediate</span>=<span class="summary-sig-default">False</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Domain.form_tile">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Domain-class.html#extend_existing_tiles" class="summary-sig-name">extend_existing_tiles</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">decision_function</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Extends all existing tiles, gobbling up scratch_points as possible.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Domain.extend_existing_tiles">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="bound_existing_tiles"></a><span class="summary-sig-name">bound_existing_tiles</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Given the tiles in self.tiles, update all their tile-based boundaries
+      until no further updates can be made.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Domain.bound_existing_tiles">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Domain-class.html#get_osculating_tiles" class="summary-sig-name">get_osculating_tiles</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">atile</span>,
+        <span class="summary-sig-arg">di</span>,
+        <span class="summary-sig-arg">direction</span>=<span class="summary-sig-default">BCTypes.none</span>,
+        <span class="summary-sig-arg">get_other_sface</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">return_other_tile</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Get the tiles in Domain which osculate atile along the dimension di.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Domain.get_osculating_tiles">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Domain-class.html#do_empty_tiling" class="summary-sig-name">do_empty_tiling</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">plot_tile_surfaces</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Creates empty virtual subtiles to cover the domain dom.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Domain.do_empty_tiling">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Domain-class.html#shrink_virtual_tiles" class="summary-sig-name">shrink_virtual_tiles</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Shrink a virtual tile V in the domain to zero volume by rearranging 
+      neighboring tiles.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Domain.shrink_virtual_tiles">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Domain-class.html#create_virtual_tiles" class="summary-sig-name">create_virtual_tiles</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">make_plots</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">plot_tile_surfaces</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Tile all untiled space in the domain into virtual tiles and add them 
+      to self.virtual_tiles.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Domain.create_virtual_tiles">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="Tiling.Domain-class.html#static_tile_assign_points" class="summary-sig-name">static_tile_assign_points</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Statically assign points to the tiles in the Domain and update the 
+      fits on those tiles.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Domain.static_tile_assign_points">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="do_domain_tiling"></a><span class="summary-sig-name">do_domain_tiling</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">L2r_thresh</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">coeff_det_thresh</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">tilde_resd_thresh</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">tilde_resd_factor</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">attempt_virtual_shrink</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">plot_tile_surfaces</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">plot_intermediate</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">plot_tiling</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">plot_final</span>=<span class="summary-sig-default">True</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="Tiling-pysrc.html#Domain.do_domain_tiling">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Properties</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Properties"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">points</span>=<span class="sig-default">[]</span>,
+        <span class="sig-arg">lo</span>=<span class="sig-default">[]</span>,
+        <span class="sig-arg">hi</span>=<span class="sig-default">[]</span>,
+        <span class="sig-arg">dm</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">plot_lo</span>=<span class="sig-default">[]</span>,
+        <span class="sig-arg">plot_hi</span>=<span class="sig-default">[]</span>,
+        <span class="sig-arg">point_normalize</span>=<span class="sig-default">True</span>,
+        <span class="sig-arg">plot_dimfrac</span>=<span class="sig-default">0.9</span>,
+        <span class="sig-arg">last_domain_slice</span>=<span class="sig-default">(None,None)</span>,
+        <span class="sig-arg">dlabels</span>=<span class="sig-default">[]</span>,
+        <span class="sig-arg">ilabel</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">logfile</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">summaryfile</span>=<span class="sig-default">None</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Domain.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>x.__init__(...) initializes x; see help(type(x)) for signature</p>
+  <dl class="fields">
+    <dt>Overrides:
+        object.__init__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="close"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">close</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Domain.close">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Manually cleanup. Used for closing open file handles.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="propagate_tile_perturbation"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">propagate_tile_perturbation</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">from_tile</span>,
+        <span class="sig-arg">di</span>,
+        <span class="sig-arg">dx</span>,
+        <span class="sig-arg">surface</span>,
+        <span class="sig-arg">direction</span>,
+        <span class="sig-arg">ignore_tiles</span>=<span class="sig-default">[]</span>,
+        <span class="sig-arg">dry_run</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Domain.propagate_tile_perturbation">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Extend the boundaries of from_tile along dimension di by length 
+  dx.</p>
+  <p>Find the other tiles in the domain which extending this boundary would
+  either interfere with or pull away from if it already osculates them 
+  along dimension di. Correct those tile dimensions and propagate the 
+  changes throughout the domain recursively. Never shrink a tile by more 
+  than dx if it's of width dx or smaller. In that case, return False to 
+  indicate the propagation could not succeed.</p>
+  <p>The surface mask smask of this Tile will be checked and if it is not 
+  equal to BCTypes.none to indicate this Tile is a surface along dimension 
+  di, then expand the surface outwards in the direction of smask.</p>
+  <p>Surface and Direction should be either BCTypes.up or BCTypes.down to 
+  indicate whether lo or hi is to be shifted and in what direction.</p>
+  <p>If ignore_tiles, then ignore propagating the perturbation to the tiles
+  in ignore_tiles. This is an aid for recursively propagating throughout 
+  the domain.</p>
+  <p>If dry_run == True, then do not actually perform any propagation but 
+  do check the domain tiles recursively to see if the propagation is 
+  allowed.</p>
+  <p>Returns False if the perturbation could not be applied to from_tile, 
+  returns True otherwise.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="multi_propagate_tile_perturbation"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">multi_propagate_tile_perturbation</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">tosc</span>,
+        <span class="sig-arg">di</span>,
+        <span class="sig-arg">dx</span>,
+        <span class="sig-arg">surface</span>,
+        <span class="sig-arg">direction</span>,
+        <span class="sig-arg">ignore_tiles</span>=<span class="sig-default">[]</span>,
+        <span class="sig-arg">dry_run</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Domain.multi_propagate_tile_perturbation">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Wrapper for propagate_tile_perturbation that takes a list tosc of 
+  (btile, sface, ctile) where btile is to be perturbed and propagated in 
+  direction if sface's surface mask matches surface.</p>
+  <p>tosc contents are as returned by self.get_osculating_tiles.</p>
+  <p>Returns True if the propagation succeeded, False otherwise.</p>
+  <p>Only actually applies the propagation if dry_run == False.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_tile_boundaries"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_tile_boundaries</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">atile</span>,
+        <span class="sig-arg">di</span>,
+        <span class="sig-arg">allow_bc_types</span>=<span class="sig-default">[BCTypes.all_types]</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Domain.get_tile_boundaries">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Given atile and a dimension di, return the [lo, hi] boundaries in a 
+  BCDim object.</p>
+  <p>Account for the types of boundary conditions listed in 
+  allow_bc_types.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="set_tile_boundaries"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">set_tile_boundaries</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">atile</span>,
+        <span class="sig-arg">allow_bc_types</span>=<span class="sig-default">[BCTypes.all_types]</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Domain.set_tile_boundaries">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Given atile, sets its [lo, hi] boundaries in each dimension.</p>
+  <p>Also updates the boundary masks for adjacent points in the tiling list
+  scratch_points.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="extend_existing_tiles"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">extend_existing_tiles</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">decision_function</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Domain.extend_existing_tiles">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Extends all existing tiles, gobbling up scratch_points as 
+  possible.</p>
+  <p>Do this by figuring out which tile can best include each of the 
+  remaining scratch_points, given the decision_function constraint.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="get_osculating_tiles"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get_osculating_tiles</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">atile</span>,
+        <span class="sig-arg">di</span>,
+        <span class="sig-arg">direction</span>=<span class="sig-default">BCTypes.none</span>,
+        <span class="sig-arg">get_other_sface</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">return_other_tile</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Domain.get_osculating_tiles">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Get the tiles in Domain which osculate atile along the dimension di. 
+  Return them as a list tosc = [(sface, ctile), ...] where sface and ctile 
+  are as in Tile.whether_osculates_tile</p>
+  <p>If direction == BCTypes.up or direction == BCTypes.down then only 
+  return the tiles which osculate atile such that the osculating surface of
+  atile has a surface normal oriented along direction. Otherwise, if 
+  direction == BCTypes.none, return tiles which osculate atile in any 
+  direction along di. Note that this direction should be relative to atile 
+  regardless the value of get_other_sface.</p>
+  <p>If get_other_sface, then sface will correspond to the surface of the 
+  Tile which osculates self.</p>
+  <p>If return_other_tile, will return the tuples [(stile, sface, ctile), 
+  ...] where stile is the Tile of which sface is the surface.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="do_empty_tiling"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">do_empty_tiling</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">plot_tile_surfaces</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Domain.do_empty_tiling">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Creates empty virtual subtiles to cover the domain dom.</p>
+  <p>Adds the created virtual subtiles to the domain dom.</p>
+  <p>Returns True if virtual Tiles were created.</p>
+  <p>Returns False if no virtual Tiles could be created.</p>
+  <p>Because the Domain Tile loop doesn't update itself as Tiles are added 
+  to the Domain, you should loop over this function until it returns None 
+  to indicate the entire Domain has been Tiled.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="shrink_virtual_tiles"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">shrink_virtual_tiles</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Domain.shrink_virtual_tiles">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Shrink a virtual tile V in the domain to zero volume by rearranging 
+  neighboring tiles.</p>
+  <p>The algorithm is outlined below: Pop a virtual tile V off the Domain's
+  list of virtual_tiles. Shrink virtual tile V by identifying its thinnest 
+  dimension di (of width W) and finding the tiles B of maximum volume with 
+  surfaces S which V osculates along di (B may be up or down relative to 
+  di, but not both). Take the surfaces S and form a virtual tile (SW) of 
+  thickness W extending from S in the direction of V. Find all tiles T, T 
+  != V, which SW overlaps. Shrink all tiles T away from B in the dimension 
+  di by length W. Expand tiles B into the volume of SW. Remove virtual tile
+  V from domain. Return and Repeat until no virtual tiles remain.</p>
+  <p>Real or virtual tiles will have a problem if they osculate the virtual
+  tile but are thinner than the virtual tile in the osculating dimension. 
+  To get around that, shrink_virtual_tiles should check to see if its 
+  smallest dimension is not thicker than its osculating tiles along that 
+  dimension. If that's not true, then it will not be possible to reduce 
+  such a virtual tile.</p>
+  <p>Reallocate points to real tiles and repeat fitting to update stats. 
+  This has to be done in whatever code calls this function.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="create_virtual_tiles"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">create_virtual_tiles</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">make_plots</span>=<span class="sig-default">False</span>,
+        <span class="sig-arg">plot_tile_surfaces</span>=<span class="sig-default">False</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Domain.create_virtual_tiles">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Tile all untiled space in the domain into virtual tiles and add them 
+  to self.virtual_tiles.</p>
+  <p>Returns True if a new virtual tile was created. Returns False 
+  otherwise.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="static_tile_assign_points"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">static_tile_assign_points</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="Tiling-pysrc.html#Domain.static_tile_assign_points">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Statically assign points to the tiles in the Domain and update the 
+  fits on those tiles. Existing points in the tiles are reset to only those
+  points assigned here.</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="Tiling-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            ><a class="navbar" target="_top" href="https://github.com/dwillcox/ND-Tile">ND-Tile</a></th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Thu Nov 17 17:47:51 2016
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

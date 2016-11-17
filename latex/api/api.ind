@@ -1,0 +1,137 @@
+\begin{theindex}
+
+  \item Tiling \textit{(module)}, \hyperpage{2--19}
+    \subitem Tiling.BCDim \textit{(class)}, \hyperpage{4}
+    \subitem Tiling.BCTypes \textit{(class)}, \hyperpage{3--4}
+    \subitem Tiling.DMCycle \textit{(class)}, \hyperpage{5--6}
+      \subsubitem Tiling.DMCycle.cycle \textit{(method)}, \hyperpage{5}
+    \subitem Tiling.Domain \textit{(class)}, \hyperpage{14--19}
+      \subsubitem Tiling.Domain.bc\_init\_mask\_points \textit{(method)}, 
+		\hyperpage{15}
+      \subsubitem Tiling.Domain.bound\_existing\_tiles \textit{(method)}, 
+		\hyperpage{16}
+      \subsubitem Tiling.Domain.close \textit{(method)}, \hyperpage{14}
+      \subsubitem Tiling.Domain.create\_virtual\_tiles \textit{(method)}, 
+		\hyperpage{18}
+      \subsubitem Tiling.Domain.do\_domain\_tiling \textit{(method)}, 
+		\hyperpage{18}
+      \subsubitem Tiling.Domain.do\_empty\_tiling \textit{(method)}, 
+		\hyperpage{17}
+      \subsubitem Tiling.Domain.extend\_existing\_tiles \textit{(method)}, 
+		\hyperpage{16}
+      \subsubitem Tiling.Domain.form\_tile \textit{(method)}, 
+		\hyperpage{16}
+      \subsubitem Tiling.Domain.get\_osculating\_tiles \textit{(method)}, 
+		\hyperpage{16}
+      \subsubitem Tiling.Domain.get\_tile\_boundaries \textit{(method)}, 
+		\hyperpage{16}
+      \subsubitem Tiling.Domain.multi\_propagate\_tile\_perturbation \textit{(method)}, 
+		\hyperpage{15}
+      \subsubitem Tiling.Domain.photogenic\_plot\_limits \textit{(method)}, 
+		\hyperpage{14}
+      \subsubitem Tiling.Domain.plot\_domain\_slice \textit{(method)}, 
+		\hyperpage{14}
+      \subsubitem Tiling.Domain.plot\_domain\_slice\_scratch \textit{(method)}, 
+		\hyperpage{14}
+      \subsubitem Tiling.Domain.print\_domain\_report \textit{(method)}, 
+		\hyperpage{15}
+      \subsubitem Tiling.Domain.propagate\_tile\_perturbation \textit{(method)}, 
+		\hyperpage{15}
+      \subsubitem Tiling.Domain.set\_tile\_boundaries \textit{(method)}, 
+		\hyperpage{16}
+      \subsubitem Tiling.Domain.shrink\_virtual\_tiles \textit{(method)}, 
+		\hyperpage{17}
+      \subsubitem Tiling.Domain.static\_tile\_assign\_points \textit{(method)}, 
+		\hyperpage{18}
+      \subsubitem Tiling.Domain.tiling\_decision\_function \textit{(method)}, 
+		\hyperpage{16}
+    \subitem Tiling.OutputWriter \textit{(class)}, \hyperpage{2--3}
+      \subsubitem Tiling.OutputWriter.close \textit{(method)}, 
+		\hyperpage{2}
+      \subsubitem Tiling.OutputWriter.write \textit{(method)}, 
+		\hyperpage{3}
+    \subitem Tiling.Plane \textit{(class)}, \hyperpage{7--8}
+      \subsubitem Tiling.Plane.close \textit{(method)}, \hyperpage{8}
+      \subsubitem Tiling.Plane.compute\_pars \textit{(method)}, 
+		\hyperpage{8}
+      \subsubitem Tiling.Plane.print\_fit\_report \textit{(method)}, 
+		\hyperpage{8}
+    \subitem Tiling.Point \textit{(class)}, \hyperpage{7}
+      \subsubitem Tiling.Point.get\_average\_dist\_nn \textit{(method)}, 
+		\hyperpage{7}
+      \subsubitem Tiling.Point.norm\_dist\_to\_pt \textit{(method)}, 
+		\hyperpage{7}
+      \subsubitem Tiling.Point.order\_nn \textit{(method)}, 
+		\hyperpage{7}
+    \subitem Tiling.TETypes \textit{(class)}, \hyperpage{4--5}
+    \subitem Tiling.Tile \textit{(class)}, \hyperpage{8--14}
+      \subsubitem Tiling.Tile.boundary\_minimize \textit{(method)}, 
+		\hyperpage{11}
+      \subsubitem Tiling.Tile.close \textit{(method)}, \hyperpage{9}
+      \subsubitem Tiling.Tile.colocated\_with \textit{(method)}, 
+		\hyperpage{9}
+      \subsubitem Tiling.Tile.create\_surface \textit{(method)}, 
+		\hyperpage{9}
+      \subsubitem Tiling.Tile.do\_plane\_fit \textit{(method)}, 
+		\hyperpage{13}
+      \subsubitem Tiling.Tile.extend\_dimension \textit{(method)}, 
+		\hyperpage{9}
+      \subsubitem Tiling.Tile.extend\_min\_volume \textit{(method)}, 
+		\hyperpage{13}
+      \subsubitem Tiling.Tile.extend\_points \textit{(method)}, 
+		\hyperpage{11}
+      \subsubitem Tiling.Tile.gen\_vertices \textit{(method)}, 
+		\hyperpage{9}
+      \subsubitem Tiling.Tile.get\_coeff\_det \textit{(method)}, 
+		\hyperpage{13}
+      \subsubitem Tiling.Tile.get\_constant\_dimensions \textit{(method)}, 
+		\hyperpage{10}
+      \subsubitem Tiling.Tile.get\_dim\_thickness \textit{(method)}, 
+		\hyperpage{9}
+      \subsubitem Tiling.Tile.get\_hypothetical\_extend \textit{(method)}, 
+		\hyperpage{13}
+      \subsubitem Tiling.Tile.get\_L2\_norm\_resd \textit{(method)}, 
+		\hyperpage{13}
+      \subsubitem Tiling.Tile.get\_nonconstant\_dimensions \textit{(method)}, 
+		\hyperpage{10}
+      \subsubitem Tiling.Tile.get\_point\_constraints \textit{(method)}, 
+		\hyperpage{11}
+      \subsubitem Tiling.Tile.get\_point\_occlusions \textit{(method)}, 
+		\hyperpage{11}
+      \subsubitem Tiling.Tile.get\_subtile \textit{(method)}, 
+		\hyperpage{13}
+      \subsubitem Tiling.Tile.get\_surfaces \textit{(method)}, 
+		\hyperpage{10}
+      \subsubitem Tiling.Tile.get\_thinnest\_dimension \textit{(method)}, 
+		\hyperpage{9}
+      \subsubitem Tiling.Tile.get\_tilde\_resd \textit{(method)}, 
+		\hyperpage{13}
+      \subsubitem Tiling.Tile.get\_tile\_constraints \textit{(method)}, 
+		\hyperpage{12}
+      \subsubitem Tiling.Tile.get\_tile\_intersection \textit{(method)}, 
+		\hyperpage{12}
+      \subsubitem Tiling.Tile.get\_tile\_occlusions \textit{(method)}, 
+		\hyperpage{12}
+      \subsubitem Tiling.Tile.get\_volume \textit{(method)}, 
+		\hyperpage{10}
+      \subsubitem Tiling.Tile.order\_thinnest\_dimensions \textit{(method)}, 
+		\hyperpage{9}
+      \subsubitem Tiling.Tile.overlaps\_point\_dimension \textit{(method)}, 
+		\hyperpage{11}
+      \subsubitem Tiling.Tile.overlaps\_tile\_dimension \textit{(method)}, 
+		\hyperpage{11}
+      \subsubitem Tiling.Tile.overlaps\_tiles \textit{(method)}, 
+		\hyperpage{11}
+      \subsubitem Tiling.Tile.print\_fit\_report \textit{(method)}, 
+		\hyperpage{10}
+      \subsubitem Tiling.Tile.print\_tile\_report \textit{(method)}, 
+		\hyperpage{10}
+      \subsubitem Tiling.Tile.whether\_occludes\_tile \textit{(method)}, 
+		\hyperpage{12}
+      \subsubitem Tiling.Tile.whether\_osculates\_tile \textit{(method)}, 
+		\hyperpage{12}
+      \subsubitem Tiling.Tile.which\_points\_within \textit{(method)}, 
+		\hyperpage{13}
+    \subitem Tiling.TilingError \textit{(class)}, \hyperpage{6--7}
+
+\end{theindex}
