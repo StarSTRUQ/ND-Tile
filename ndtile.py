@@ -54,6 +54,8 @@ parser.add_argument('-ptil', '--plottiling', action='store_true',
                     help='If supplied, plot the domain whenever a new tile is added to the domain.')
 parser.add_argument('-pfin', '--plotfinal', action='store_true',
                     help='If supplied, plot the domain when tiling is complete.')
+parser.add_argument('-dlab', '--dimlabels', type=str, nargs='*', help='If supplied, will collect a series of strings specifying, in order, the label for each dimension. If the number of dimension labels is not exactly equal to the dimensionality of the dataset, then the supplied labels will be ignored.')
+parser.add_argument('-ilab', '--independentlabel', type=str, help='Takes a string argument to set the label for the independent scalar value corresponding to this dataset.')
 parser.add_argument('-noshrink', '--noshrink', action='store_true',
                     help='If supplied, virtual tiles containing empty space will not be shrunk after point tiling.')
 parser.add_argument('-log', '--logfile', type=str,
@@ -82,7 +84,9 @@ lo = np.amin(pt_ivals, axis=0)
 hi = np.amax(pt_ivals, axis=0)
 
 # Form Domain
-dom = Domain(points=pointlist, lo=lo, hi=hi, logfile=args.logfile, summaryfile=args.outfile)
+dom = Domain(points=pointlist, lo=lo, hi=hi,
+             dlabels=args.dimlabels, ilabel=args.independentlabel,
+             logfile=args.logfile, summaryfile=args.outfile)
 
 # Tile Domain
 dom.do_domain_tiling(L2r_thresh=args.L2resthresh, coeff_det_thresh=args.cdetthresh, tilde_resd_thresh=args.tilesymmetry,

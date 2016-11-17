@@ -919,6 +919,7 @@ class Domain(object):
                  plot_lo=[], plot_hi=[],
                  point_normalize=True,
                  plot_dimfrac=0.9, last_domain_slice=(None, None),
+                 dlabels=[], ilabel=None,
                  logfile=None, summaryfile=None):
         # The Domain is just a set of Point objects
         # and functions for tiling them into a set of Tile objects.        
@@ -931,6 +932,8 @@ class Domain(object):
         self.scratch_points = []
         self.plot_num = 0
         self.last_domain_slice = last_domain_slice # (fig, ax) tuple
+        self.dlabels = dlabels # Labels for the Domain dimensions
+        self.ilabel = ilabel # Label for the scalar value (independent var)
         if logfile:
             self.logwriter = OutputWriter(logfile)
         else:
@@ -956,6 +959,7 @@ class Domain(object):
         if set_photogenic_lims:
             self.photogenic_plot_limits(plot_dimfrac)
 
+        # Check and set dimensionality
         if list(self.lo) and list(self.hi):
             if len(self.lo) != len(self.hi):
                 self.logwriter.write('ERROR: lo and hi supplied with incongruous dimensions.')
@@ -963,6 +967,10 @@ class Domain(object):
             else:
                 if not self.dm:
                     self.dm = len(self.lo)
+
+        # Check and unset dependent variable labels if needed
+        if self.dlabels and len(self.dlabels) != self.dm:
+            self.dlabels = []
 
         # Set up boundary masks for points
         if list(points) and list(self.lo) and list(self.hi):
@@ -1052,7 +1060,11 @@ class Domain(object):
             bounds = np.linspace(np.amin(point_scalar_range), np.amax(point_scalar_range), num=5)
             norm = mpl.colors.Normalize(vmin=np.amin(bounds),vmax=np.amax(bounds))
             img = ax.scatter(points_x, points_y, c=points_v, cmap=cmap, norm=norm)
-            fig.colorbar(img, cmap=cmap, cax=cax, ticks=bounds, norm=norm, label='Scalar Value')
+            if self.ilabel:
+                cblabel = self.ilabel
+            else:
+                cblabel = 'Scalar Value'
+            fig.colorbar(img, cmap=cmap, cax=cax, ticks=bounds, norm=norm, label=cblabel)
         # Plot points outside Tiles
         if self.scratch_points:
             for i, p in enumerate(self.scratch_points):
@@ -1060,8 +1072,14 @@ class Domain(object):
         if not underlay_figure_axis:
             ax.set_xlim([self.plot_lo[dimx], self.plot_hi[dimx]])
             ax.set_ylim([self.plot_lo[dimy], self.plot_hi[dimy]])
-            ax.set_ylabel('Dimension {}'.format(dimy))
-            ax.set_xlabel('Dimension {}'.format(dimx))
+            if self.dlabels:
+                ylabel = self.dlabels[dimy]
+                xlabel = self.dlabels[dimx]
+            else:
+                ylabel = 'Dimension {}'.format(dimy)
+                xlabel = 'Dimension {}'.format(dimx)
+            ax.set_ylabel(ylabel)
+            ax.set_xlabel(xlabel)
             fig.tight_layout()
         if not save_num:
             self.plot_num += 1
